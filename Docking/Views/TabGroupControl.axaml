@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:STACK_HUB.Docking.Models"
+             x:Class="STACK_HUB.Docking.Views.TabGroupControl"
+             x:DataType="models:TabGroupNode">
+    <TabControl ItemsSource="{Binding Panes}"
+                SelectedItem="{Binding ActivePane, Mode=TwoWay}">
+        <!-- Tab Header -->
+        <TabControl.ItemTemplate>
+            <DataTemplate DataType="models:PaneNode">
+                <TextBlock Text="{Binding Title}" VerticalAlignment="Center" Margin="4,2" />
+            </DataTemplate>
+        </TabControl.ItemTemplate>
+        <!-- Tab Body -->
+        <TabControl.ContentTemplate>
+            <DataTemplate DataType="models:PaneNode">
+                <ContentControl Content="{Binding ContentViewModel}" />
+            </DataTemplate>
+        </TabControl.ContentTemplate>
+    </TabControl>
+</UserControl>

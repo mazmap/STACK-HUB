@@ -1,0 +1,96 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:STACK_HUB.ViewModels"
+        xmlns:models="using:STACK_HUB.Models"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="STACK_HUB.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Background="#26282C"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="STACK HUB">
+
+    <Design.DataContext>
+        <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+        <vm:MainViewModel />
+    </Design.DataContext>
+
+    <Grid RowDefinitions="Auto,*" ColumnDefinitions="*">
+        <!--TOP HEADER-->
+        <Grid Grid.Row="0" ColumnDefinitions="*,*" Height="48" >
+          <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Background="#191A1C" Margin="2">
+            <TextBlock Text="Auftrag_xxx127" FontSize="12" Foreground="White" VerticalAlignment="Center" Margin="8,0"/>
+            <Button Content="✕" FontSize="9" Background="Transparent" Foreground="#64748B" Padding="4,2" BorderThickness="0"
+                    CommandParameter="{Binding}"/>
+          </StackPanel>
+          <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Background="#191A1C" Margin="2">
+            <TextBlock Text="Auftrag_xxx156" FontSize="12" Foreground="White" VerticalAlignment="Center" Margin="8,0"/>
+            <Button Content="✕" FontSize="9" Background="Transparent" Foreground="#64748B" Padding="4,2" BorderThickness="0"
+                    CommandParameter="{Binding}"/>
+          </StackPanel>
+        </Grid>
+        <Grid Grid.Row="1">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200" MinWidth="200" />
+             <ColumnDefinition Width="1" />
+             <ColumnDefinition Width="*" MinWidth="200" />
+          </Grid.ColumnDefinitions>
+          <ScrollViewer Grid.Column="0" Background="#191A1C" BorderBrush="#2D2F45" BorderThickness="0,0,1,0" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="12" Spacing="8">
+              <!-- Category 1: Settings -->
+              <StackPanel>
+                <TextBlock Text="Question settings"/>
+                <Button Content="General settings"/>
+                <Button Content="Maxima settings"/>
+              </StackPanel>
+
+              <!-- Category 2: Main Content -->
+              <StackPanel>
+                <TextBlock Text="Main content"/>
+                <Button Content="Question variables"/>
+                <Button Content="Question text"/>
+              </StackPanel>
+
+              <!-- Category 3: Input Settings list -->
+              <StackPanel>
+                <TextBlock Text="Input settings"/>
+                <ItemsControl ItemsSource="{Binding ActiveQuestion.Inputs}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="models:StackInput">
+                      <Button Content="{Binding Name}" Classes="tree-item"  CommandParameter="{Binding Id}" Margin="8,0,0,0"/>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+
+              <!-- Category 4: Feedback options -->
+              <StackPanel>
+                <TextBlock Text="Feedback" Classes="sidebar-header"/>
+                <Button Content="Specific Feedback" Classes="tree-item"  CommandParameter="specific_feedback"/>
+                <Button Content="General Feedback" Classes="tree-item"  CommandParameter="general_feedback"/>
+              </StackPanel>
+
+              <!-- Category 5: Grading list -->
+              <StackPanel>
+                <TextBlock Text="Grading (PRTs)" Classes="sidebar-header"/>
+                <ItemsControl ItemsSource="{Binding ActiveQuestion.Prts}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="models:StackPrt">
+                      <Button Content="{Binding Name}" Classes="tree-item"  CommandParameter="{Binding Id}" Margin="8,0,0,0"/>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </StackPanel>
+          </ScrollViewer>
+          
+          <GridSplitter Grid.Column="1" Background="#26282C" ResizeDirection="Columns"/>
+          
+          <Grid Grid.Column="2" Background="#191A1C" RowDefinitions="36,*">
+            <TextBlock Text="Test"/>
+          </Grid>
+       </Grid>
+    </Grid>
+</Window>
