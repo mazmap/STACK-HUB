@@ -1,20 +1,48 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:models="clr-namespace:STACK_HUB.Docking.Models"
+             xmlns:vm="clr-namespace:STACK_HUB.ViewModels"
+             xmlns:templates="clr-namespace:STACK_HUB.Docking.Templates"
              x:Class="STACK_HUB.Docking.Views.TabGroupControl"
              x:DataType="models:TabGroupNode">
+    <UserControl.Resources>
+        <templates:LayoutTemplateSelector x:Key="LayoutSelector" />
+    </UserControl.Resources>
+    
+    <UserControl.Styles>
+        <Style Selector="TabItem">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Padding" Value="8,4" />
+            <Setter Property="MinHeight" Value="28" />
+        </Style>
+    </UserControl.Styles>
+
     <TabControl ItemsSource="{Binding Panes}"
                 SelectedItem="{Binding ActivePane, Mode=TwoWay}">
-        <!-- Tab Header -->
+        <!-- Tab Header Template -->
         <TabControl.ItemTemplate>
             <DataTemplate DataType="models:PaneNode">
-                <TextBlock Text="{Binding Title}" VerticalAlignment="Center" Margin="4,2" />
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+
+                    <!-- Close Button -->
+                    <Button Content="✕"
+                            Padding="4,1"
+                            FontSize="10"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Command="{Binding CloseCommand}"
+                            CommandParameter="{Binding}" />
+                </StackPanel>
             </DataTemplate>
         </TabControl.ItemTemplate>
-        <!-- Tab Body -->
+
+        <!-- Tab Content Template -->
         <TabControl.ContentTemplate>
             <DataTemplate DataType="models:PaneNode">
-                <ContentControl Content="{Binding ContentViewModel}" />
+                <!-- Explicitly assign ContentTemplate to trigger template resolution -->
+                <ContentControl Content="{Binding ContentViewModel}" 
+                                ContentTemplate="{StaticResource LayoutSelector}" />
             </DataTemplate>
         </TabControl.ContentTemplate>
     </TabControl>

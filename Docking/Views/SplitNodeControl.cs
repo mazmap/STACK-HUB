@@ -1,12 +1,16 @@
 using System;
-using Avalonia.Data;
-using STACK_HUB.Docking.Models;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Layout;
+using STACK_HUB.Docking.Models;
+using STACK_HUB.Docking.Templates; // Make sure this is imported
 
 namespace STACK_HUB.Docking.Views;
+
 public class SplitNodeControl : Grid
 {
+    private static readonly LayoutTemplateSelector Selector = new();
+
     public SplitNodeControl()
     {
         this.DataContextChanged += OnDataContextChanged;
@@ -20,14 +24,23 @@ public class SplitNodeControl : Grid
         ColumnDefinitions.Clear();
         RowDefinitions.Clear();
 
-        // Host controls for the two children
-        var firstHost = new ContentControl { [!ContentControl.ContentProperty] = new Binding(nameof(SplitNode.FirstChild)) };
-        var secondHost = new ContentControl { [!ContentControl.ContentProperty] = new Binding(nameof(SplitNode.SecondChild)) };
+        // Host controls for the two children with explicit ContentTemplate assigned
+        var firstHost = new ContentControl 
+        { 
+            [!ContentControl.ContentProperty] = new Binding(nameof(SplitNode.FirstChild)),
+            ContentTemplate = Selector 
+        };
+        
+        var secondHost = new ContentControl 
+        { 
+            [!ContentControl.ContentProperty] = new Binding(nameof(SplitNode.SecondChild)),
+            ContentTemplate = Selector 
+        };
+
         var splitter = new GridSplitter();
 
         if (split.Orientation == Orientation.Horizontal)
         {
-            // Left | Splitter | Right
             ColumnDefinitions.Add(new ColumnDefinition(new GridLength(split.Ratio, GridUnitType.Star)));
             ColumnDefinitions.Add(new ColumnDefinition(GridLength.Auto));
             ColumnDefinitions.Add(new ColumnDefinition(new GridLength(1.0 - split.Ratio, GridUnitType.Star)));
@@ -41,7 +54,6 @@ public class SplitNodeControl : Grid
         }
         else
         {
-            // Top / Splitter / Bottom
             RowDefinitions.Add(new RowDefinition(new GridLength(split.Ratio, GridUnitType.Star)));
             RowDefinitions.Add(new RowDefinition(GridLength.Auto));
             RowDefinitions.Add(new RowDefinition(new GridLength(1.0 - split.Ratio, GridUnitType.Star)));

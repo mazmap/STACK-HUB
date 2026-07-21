@@ -79,23 +79,28 @@ public class LayoutManager
 
         var isNewFirst = (position == DockPosition.Left || position == DockPosition.Top);
 
+        // Save targetNode's old parent before modifying pointers
+        var oldParent = targetNode.Parent;
+
         var newSplit = new SplitNode
         {
             Orientation = orientation,
             Ratio = 0.5,
             FirstChild = isNewFirst ? newTabGroup : targetNode,
             SecondChild = isNewFirst ? targetNode : newTabGroup,
-            Parent = targetNode.Parent
+            Parent = oldParent
         };
 
+        // Update parent pointers of children
         newTabGroup.Parent = newSplit;
+        targetNode.Parent = newSplit;
 
-        if (targetNode.Parent == null) // targetNode was the root
+        // Replace targetNode in oldParent with newSplit
+        if (oldParent == null) // targetNode WAS the root node
         {
-            targetNode.Parent = newSplit;
             root = newSplit;
         }
-        else if (targetNode.Parent is SplitNode parentSplit)
+        else if (oldParent is SplitNode parentSplit)
         {
             if (parentSplit.FirstChild == targetNode)
             {
@@ -105,8 +110,6 @@ public class LayoutManager
             {
                 parentSplit.SecondChild = newSplit;
             }
-
-            targetNode.Parent = newSplit;
         }
     }
 
