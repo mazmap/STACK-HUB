@@ -23,13 +23,13 @@ public partial class MainViewModel : ObservableObject
     {
         // 1. Create Left Pane Group (Solution Explorer)
         var leftGroup = new TabGroupNode();
-        leftGroup.Panes.Add(CreatePane("Solution Explorer", "File Tree View"));
+        leftGroup.AddPane(CreatePane("Solution Explorer", "File Tree View"));
         leftGroup.ActivePane = leftGroup.Panes[0];
 
         // 2. Create Right Pane Group (Code Editor)
         var rightGroup = new TabGroupNode();
-        rightGroup.Panes.Add(CreatePane("MainWindow.axaml", "<Window> Code View </Window>"));
-        rightGroup.Panes.Add(CreatePane("MainWindow.axaml.cs", "C# code view"));
+        rightGroup.AddPane(CreatePane("MainWindow.axaml", "<Window> Code View </Window>"));
+        rightGroup.AddPane(CreatePane("MainWindow.axaml.cs", "C# code view"));
         rightGroup.ActivePane = rightGroup.Panes[0];
 
         // 3. Create Root Split Container

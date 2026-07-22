@@ -9,4 +9,10 @@ public partial class TabGroupNode : LayoutNode
 
     [ObservableProperty]
     private PaneNode? _activePane;
+
+    public void AddPane(PaneNode pane)
+    {
+        Panes.Add(pane);
+        pane.Parent = this;
+    }
 }
