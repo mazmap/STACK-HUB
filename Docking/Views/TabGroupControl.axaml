@@ -22,7 +22,11 @@
         <!-- Tab Header Template -->
         <TabControl.ItemTemplate>
             <DataTemplate DataType="models:PaneNode">
-                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" 
+                            Background="Transparent"
+                            PointerPressed="OnTabPointerPressed"
+                            PointerMoved="OnTabPointerMoved"
+                            PointerReleased="OnTabPointerReleased">
                     <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
 
                     <!-- Close Button -->

@@ -11,6 +11,11 @@ public partial class MainViewModel : ObservableObject
 {
     private readonly LayoutManager _layoutManager = new();
 
+    public LayoutManager LayoutManager
+    {
+        get => _layoutManager;
+    }
+
     [ObservableProperty]
     private LayoutNode? _rootLayout;
 

@@ -11,21 +11,14 @@ public class LayoutManager
     /// Moves a source PaneNode to a specified target node and position.
     /// Returns the updated Root node (in case the root itself changed).
     /// </summary>
-    public LayoutNode Dock(PaneNode sourcePane, LayoutNode targetNode, DockPosition position, ref LayoutNode root)
+    public void Dock(PaneNode sourcePane, LayoutNode targetNode, DockPosition position, ref LayoutNode root)
     {
-        if (sourcePane == null || targetNode == null) throw new ArgumentNullException();
-
-        // 1. Remove the source pane from its current location in the tree
-        RemovePane(sourcePane, ref root);
-
-        // 2. Perform docking relative to the target
         if (position == DockPosition.Center)
         {
-            if (targetNode is TabGroupNode targetTabGroup)
+            if (targetNode is TabGroupNode targetGroup)
             {
-                targetTabGroup.Panes.Add(sourcePane);
-                sourcePane.Parent = targetTabGroup;
-                targetTabGroup.ActivePane = sourcePane;
+                targetGroup.AddPane(sourcePane); // Uses your clean AddPane method!
+                targetGroup.ActivePane = sourcePane;
             }
             else
             {
@@ -34,15 +27,11 @@ public class LayoutManager
         }
         else
         {
-            // We are splitting around the target node
+            // Directional splits (Left, Right, Top, Bottom)
             SplitAndInsert(sourcePane, targetNode, position, ref root);
         }
-
-        // 3. Clean up empty/redundant nodes created during removal or splitting
-        root = NormalizeTree(root)!;
-        return root;
     }
-
+    
     /// <summary>
     /// Removes a pane from the tree.
     /// </summary>
@@ -162,4 +151,135 @@ public class LayoutManager
 
         return node;
     }
+    
+    public void RelocatePane(PaneNode sourcePane, TabGroupNode targetGroup, DockPosition position, ref LayoutNode? root)
+    {
+        if (root == null) return;
+
+        // 1. Remember the original TabGroupNode before removing sourcePane
+        var sourceGroup = sourcePane.Parent as TabGroupNode 
+                          ?? FindTabGroupContaining(root, sourcePane);
+
+        if (sourceGroup == null) return;
+
+        // 2. Remove the pane from the source group
+        sourceGroup.Panes.Remove(sourcePane);
+
+        if (sourceGroup.ActivePane == sourcePane)
+        {
+            sourceGroup.ActivePane = sourceGroup.Panes.LastOrDefault();
+        }
+
+        // 3. Dock the pane into the target destination
+        Dock(sourcePane, targetGroup, position, ref root);
+
+        // 4. Normalize the original source group if it was emptied out
+        if (sourceGroup.Panes.Count == 0)
+        {
+            root = RemoveNodeAndNormalize(sourceGroup, root);
+        }
+    }
+    
+    /// <summary>
+/// Recursively searches the tree starting from <paramref name="root"/> 
+/// to locate the <see cref="TabGroupNode"/> containing the specified <paramref name="pane"/>.
+/// </summary>
+public TabGroupNode? FindTabGroupContaining(LayoutNode? root, PaneNode pane)
+{
+    if (root == null) return null;
+
+    if (root is TabGroupNode tabGroup)
+    {
+        if (tabGroup.Panes.Contains(pane))
+        {
+            return tabGroup;
+        }
+    }
+    else if (root is SplitNode splitNode)
+    {
+        var foundInFirst = FindTabGroupContaining(splitNode.FirstChild, pane);
+        if (foundInFirst != null) return foundInFirst;
+
+        return FindTabGroupContaining(splitNode.SecondChild, pane);
+    }
+
+    return null;
+}
+
+/// <summary>
+/// Removes <paramref name="nodeToRemove"/> from the layout tree and normalizes the tree 
+/// by promoting sibling nodes to eliminate empty or single-child <see cref="SplitNode"/> containers.
+/// </summary>
+public LayoutNode? RemoveNodeAndNormalize(LayoutNode nodeToRemove, LayoutNode? root)
+{
+    // Case 1: The node being removed is the root itself
+    if (root == null || nodeToRemove == root)
+    {
+        return null;
+    }
+
+    // Resolve parent SplitNode
+    var parent = nodeToRemove.Parent as SplitNode ?? FindParentSplitNode(root, nodeToRemove);
+    if (parent == null)
+    {
+        return root;
+    }
+
+    // Determine the sibling node that should survive
+    LayoutNode? survivingSibling = null;
+    if (parent.FirstChild == nodeToRemove)
+    {
+        survivingSibling = parent.SecondChild;
+    }
+    else if (parent.SecondChild == nodeToRemove)
+    {
+        survivingSibling = parent.FirstChild;
+    }
+
+    if (survivingSibling == null)
+    {
+        return root;
+    }
+
+    // Promote the surviving sibling to take the place of the parent SplitNode
+    var grandParent = parent.Parent as SplitNode ?? FindParentSplitNode(root, parent);
+
+    if (grandParent != null)
+    {
+        survivingSibling.Parent = grandParent;
+
+        if (grandParent.FirstChild == parent)
+        {
+            grandParent.FirstChild = survivingSibling;
+        }
+        else if (grandParent.SecondChild == parent)
+        {
+            grandParent.SecondChild = survivingSibling;
+        }
+
+        return root;
+    }
+    else
+    {
+        // Parent was the root; surviving sibling becomes the new root
+        survivingSibling.Parent = null;
+        return survivingSibling;
+    }
+}
+
+/// <summary>
+/// Helper to find the parent SplitNode of a given target child if parent pointers are unassigned.
+/// </summary>
+private SplitNode? FindParentSplitNode(LayoutNode? root, LayoutNode targetChild)
+{
+    if (root is not SplitNode splitNode) return null;
+
+    if (splitNode.FirstChild == targetChild || splitNode.SecondChild == targetChild)
+    {
+        return splitNode;
+    }
+
+    return FindParentSplitNode(splitNode.FirstChild, targetChild) 
+        ?? FindParentSplitNode(splitNode.SecondChild, targetChild);
+}
 }
