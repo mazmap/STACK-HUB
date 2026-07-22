@@ -50,7 +50,7 @@
                     IsVisible="{Binding RootLayout, Converter={x:Static ObjectConverters.IsNotNull}}" />
     
     <!-- Canvas Overlay for Drag Indicator / Compass -->
-    <Canvas x:Name="DragOverlayCanvas" 
+    <Canvas Grid.Row="1" x:Name="DragOverlayCanvas" 
             IsHitTestVisible="False" 
             HorizontalAlignment="Stretch" 
             VerticalAlignment="Stretch" />

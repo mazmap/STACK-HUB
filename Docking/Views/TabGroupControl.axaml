@@ -10,12 +10,49 @@
     </UserControl.Resources>
     
     <UserControl.Styles>
-        <Style Selector="TabItem">
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Padding" Value="8,4" />
-            <Setter Property="MinHeight" Value="28" />
-        </Style>
-    </UserControl.Styles>
+    <!-- 1. Custom TabItem Control Template (Strips out default theme selection pipe) -->
+    <Style Selector="TabItem">
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="Height" Value="24" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="2,5" />
+        <Setter Property="BorderBrush" Value="#808080" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="Background" Value="#252526" />
+        <Setter Property="Foreground" Value="#CCCCCC" />
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="Template">
+            <ControlTemplate>
+                <Border x:Name="PART_LayoutRoot"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        Padding="{TemplateBinding Padding}">
+                    <ContentPresenter Name="PART_ContentPresenter"
+                                      Content="{TemplateBinding Header}"
+                                      ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                </Border>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- 2. Active State Styling (Blue Border) -->
+    <Style Selector="TabItem:selected">
+        <Setter Property="BorderBrush" Value="#007ACC" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Background" Value="#1E1E1E" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+    </Style>
+
+    <!-- 3. Pointer Hover State (Optional) -->
+    <Style Selector="TabItem:pointerover /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="#2A2D2E" />
+    </Style>
+</UserControl.Styles>
 
     <TabControl ItemsSource="{Binding Panes}"
                 SelectedItem="{Binding ActivePane, Mode=TwoWay}">
@@ -27,7 +64,7 @@
                             PointerPressed="OnTabPointerPressed"
                             PointerMoved="OnTabPointerMoved"
                             PointerReleased="OnTabPointerReleased">
-                    <TextBlock Text="{Binding Title}" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Title}" VerticalAlignment="Center" Padding="4, 0, 0, 0"/>
 
                     <!-- Close Button -->
                     <Button Content="✕"

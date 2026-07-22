@@ -95,7 +95,7 @@ public partial class TabGroupControl : UserControl
             var dockPos = CalculateDockPosition(targetTabGroupControl.Bounds, relativePos);
 
             // Get matrix transformation from target control relative to MainWindow (TopLevel)
-            var transform = targetTabGroupControl.TransformToVisual(topLevel);
+            var transform = targetTabGroupControl.TransformToVisual(canvas);
             if (transform.HasValue)
             {
                 // 1. Transform top-left corner (0,0) to topLevel coordinates
