@@ -89,10 +89,18 @@ public partial class TabGroupControl : UserControl
         var canvas = topLevel.FindControl<Canvas>("DragOverlayCanvas");
         if (canvas == null) return;
 
-        if (targetTabGroupControl != null && targetTabGroupControl.DataContext is TabGroupNode)
+        if (targetTabGroupControl != null && targetTabGroupControl.DataContext is TabGroupNode targetTabGroupNode)
         {
-            var relativePos = pointerPosition - targetTabGroupControl.TranslatePoint(new Point(0, 0), topLevel)!.Value;
-            var dockPos = CalculateDockPosition(targetTabGroupControl.Bounds, relativePos);
+            DockPosition dockPos;
+            if (targetTabGroupNode.Panes.Count == 1 && targetTabGroupNode.Panes[0] == _draggedPane)
+            {
+                dockPos = DockPosition.Center;
+            }
+            else
+            {
+                var relativePos = pointerPosition - targetTabGroupControl.TranslatePoint(new Point(0, 0), topLevel)!.Value;
+                dockPos = CalculateDockPosition(targetTabGroupControl.Bounds, relativePos);
+            }
 
             // Get matrix transformation from target control relative to MainWindow (TopLevel)
             var transform = targetTabGroupControl.TransformToVisual(canvas);
@@ -184,8 +192,8 @@ private void DrawDockPreview(Canvas canvas, Rect targetBounds, DockPosition posi
 
             if (DataContext is TabGroupNode currentGroup)
             {
-                // Prevent dropping onto itself if it's the only pane in Center position
-                if (currentGroup == targetNode && currentGroup.Panes.Count == 1 && position == DockPosition.Center)
+                // Prevent dropping onto itself if it's the only pane 
+                if (currentGroup == targetNode && currentGroup.Panes.Count == 1)
                     return;
 
                 if (topLevel.DataContext is MainViewModel mainVm)
