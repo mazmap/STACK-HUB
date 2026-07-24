@@ -32,6 +32,8 @@ public partial class TabGroupControl : UserControl
             _dragStartPoint = e.GetPosition(this);
             _draggedPane = pane;
             _isDragging = false;
+            
+            e.Pointer.Capture(sender as IInputElement);
         }
     }
 
@@ -46,7 +48,6 @@ public partial class TabGroupControl : UserControl
         if (!_isDragging && (Math.Abs(diff.X) > 6 || Math.Abs(diff.Y) > 6))
         {
             _isDragging = true;
-            e.Pointer.Capture(sender as IInputElement);
         }
 
         if (_isDragging)
@@ -64,9 +65,10 @@ public partial class TabGroupControl : UserControl
 
     private void OnTabPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
+        e.Pointer.Capture(null);
+        
         if (_isDragging && _draggedPane != null)
         {
-            e.Pointer.Capture(null);
 
             var topLevel = TopLevel.GetTopLevel(this);
             if (topLevel != null)

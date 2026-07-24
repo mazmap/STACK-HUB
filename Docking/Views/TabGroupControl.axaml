@@ -15,7 +15,7 @@
         <Setter Property="MinHeight" Value="0" />
         <Setter Property="Height" Value="24" />
         <Setter Property="Padding" Value="0" />
-        <Setter Property="Margin" Value="2,5" />
+        <Setter Property="Margin" Value="2,3" />
         <Setter Property="BorderBrush" Value="#808080" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="0" />
@@ -56,6 +56,109 @@
 
     <TabControl ItemsSource="{Binding Panes}"
                 SelectedItem="{Binding ActivePane, Mode=TwoWay}">
+        <TabControl.Styles>
+    <!-- 1. ScrollViewer Template: Overlays Scrollbar on TOP + Full Hit-Test Background -->
+    <Style Selector="TabControl > Grid > ScrollViewer">
+        <Setter Property="AllowAutoHide" Value="False" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Template">
+            <ControlTemplate TargetType="ScrollViewer">
+                <Grid Background="Transparent">
+                    <!-- Tab Content: Reserved 8px top margin + explicit Background for hit-testing -->
+                    <ScrollContentPresenter Name="PART_ScrollContentPresenter"
+                                            Margin="0,4,0,0"
+                                            Background="Transparent"
+                                            HorizontalSnapPointsType="{TemplateBinding HorizontalSnapPointsType}"
+                                            VerticalSnapPointsType="{TemplateBinding VerticalSnapPointsType}"
+                                            HorizontalSnapPointsAlignment="{TemplateBinding HorizontalSnapPointsAlignment}"
+                                            VerticalSnapPointsAlignment="{TemplateBinding VerticalSnapPointsAlignment}" />
+
+                    <!-- ScrollBar: Floats in the 8px top margin -->
+                    <ScrollBar Name="PART_HorizontalScrollBar"
+                               Orientation="Horizontal"
+                               VerticalAlignment="Top"
+                               HorizontalAlignment="Stretch" />
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+
+    <!-- 2. ScrollBar Appearance & Smooth Fade Transitions -->
+    <Style Selector="TabControl ScrollBar:horizontal">
+        <Setter Property="Height" Value="4" />
+        <Setter Property="MinHeight" Value="4" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Margin" Value="0,1,0,0" />
+        <Setter Property="Opacity" Value="0" />
+        <Setter Property="Transitions">
+            <Transitions>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+            </Transitions>
+        </Setter>
+    </Style>
+
+    <!-- 3. Fade in ScrollBar on hover over header strip -->
+    <Style Selector="TabControl > Grid > ScrollViewer:pointerover ScrollBar:horizontal">
+        <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <!-- 4. Track & Thumb Styling -->
+    <Style Selector="TabControl ScrollBar:horizontal /template/ Track#PART_Track">
+        <Setter Property="MinHeight" Value="4" />
+    </Style>
+
+    <Style Selector="TabControl ScrollBar:horizontal /template/ Thumb">
+        <Setter Property="MinHeight" Value="4" />
+        <Setter Property="Background" Value="#40FFFFFF" />
+        <Setter Property="CornerRadius" Value="2" />
+    </Style>
+
+    <Style Selector="TabControl ScrollBar:horizontal /template/ Thumb:pointerover">
+        <Setter Property="Background" Value="#80FFFFFF" />
+    </Style>
+
+    <!-- 5. Hide default arrow buttons -->
+    <Style Selector="TabControl ScrollBar:horizontal /template/ RepeatButton">
+        <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <!-- 6. Main TabControl Control Template with Continuous Background Surface -->
+    <Style Selector="TabControl">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Template">
+            <ControlTemplate TargetType="TabControl">
+                <Grid RowDefinitions="Auto,*" Background="Transparent">
+                    <!-- Scrollable Header Strip -->
+                    <ScrollViewer Grid.Row="0"
+                                  HorizontalScrollBarVisibility="Auto"
+                                  VerticalScrollBarVisibility="Disabled"
+                                  Focusable="False">
+                        <ItemsPresenter Name="PART_ItemsPresenter"
+                                        ItemsPanel="{TemplateBinding ItemsPanel}"
+                                        VerticalAlignment="Top" />
+                    </ScrollViewer>
+
+                    <!-- Pane Content Area -->
+                    <ContentPresenter Name="PART_SelectedContentHost"
+                                      Grid.Row="1"
+                                      Background="Transparent"
+                                      Margin="{TemplateBinding Padding}"
+                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      Content="{TemplateBinding SelectedContent}"
+                                      ContentTemplate="{TemplateBinding SelectedContentTemplate}" />
+                </Grid>
+            </ControlTemplate>
+        </Setter>
+    </Style>
+</TabControl.Styles>       
+        
+        <TabControl.ItemsPanel>
+            <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal" />
+            </ItemsPanelTemplate>
+        </TabControl.ItemsPanel>
+
         <!-- Tab Header Template -->
         <TabControl.ItemTemplate>
             <DataTemplate DataType="models:PaneNode">
