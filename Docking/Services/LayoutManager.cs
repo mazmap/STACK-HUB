@@ -181,105 +181,111 @@ public class LayoutManager
     }
     
     /// <summary>
-/// Recursively searches the tree starting from <paramref name="root"/> 
-/// to locate the <see cref="TabGroupNode"/> containing the specified <paramref name="pane"/>.
-/// </summary>
-public TabGroupNode? FindTabGroupContaining(LayoutNode? root, PaneNode pane)
-{
-    if (root == null) return null;
-
-    if (root is TabGroupNode tabGroup)
+    /// Recursively searches the tree starting from <paramref name="root"/> 
+    /// to locate the <see cref="TabGroupNode"/> containing the specified <paramref name="pane"/>.
+    /// </summary>
+    public TabGroupNode? FindTabGroupContaining(LayoutNode? root, PaneNode pane)
     {
-        if (tabGroup.Panes.Contains(pane))
+        if (root == null) return null;
+
+        if (root is TabGroupNode tabGroup)
         {
-            return tabGroup;
+            if (tabGroup.Panes.Contains(pane))
+            {
+                return tabGroup;
+            }
         }
-    }
-    else if (root is SplitNode splitNode)
-    {
-        var foundInFirst = FindTabGroupContaining(splitNode.FirstChild, pane);
-        if (foundInFirst != null) return foundInFirst;
+        else if (root is SplitNode splitNode)
+        {
+            var foundInFirst = FindTabGroupContaining(splitNode.FirstChild, pane);
+            if (foundInFirst != null) return foundInFirst;
 
-        return FindTabGroupContaining(splitNode.SecondChild, pane);
-    }
+            return FindTabGroupContaining(splitNode.SecondChild, pane);
+        }
 
-    return null;
-}
-
-/// <summary>
-/// Removes <paramref name="nodeToRemove"/> from the layout tree and normalizes the tree 
-/// by promoting sibling nodes to eliminate empty or single-child <see cref="SplitNode"/> containers.
-/// </summary>
-public LayoutNode? RemoveNodeAndNormalize(LayoutNode nodeToRemove, LayoutNode? root)
-{
-    // Case 1: The node being removed is the root itself
-    if (root == null || nodeToRemove == root)
-    {
         return null;
     }
 
-    // Resolve parent SplitNode
-    var parent = nodeToRemove.Parent as SplitNode ?? FindParentSplitNode(root, nodeToRemove);
-    if (parent == null)
+    /// <summary>
+    /// Removes <paramref name="nodeToRemove"/> from the layout tree and normalizes the tree 
+    /// by promoting sibling nodes to eliminate empty or single-child <see cref="SplitNode"/> containers.
+    /// </summary>
+    public LayoutNode? RemoveNodeAndNormalize(LayoutNode nodeToRemove, LayoutNode? root)
     {
-        return root;
-    }
-
-    // Determine the sibling node that should survive
-    LayoutNode? survivingSibling = null;
-    if (parent.FirstChild == nodeToRemove)
-    {
-        survivingSibling = parent.SecondChild;
-    }
-    else if (parent.SecondChild == nodeToRemove)
-    {
-        survivingSibling = parent.FirstChild;
-    }
-
-    if (survivingSibling == null)
-    {
-        return root;
-    }
-
-    // Promote the surviving sibling to take the place of the parent SplitNode
-    var grandParent = parent.Parent as SplitNode ?? FindParentSplitNode(root, parent);
-
-    if (grandParent != null)
-    {
-        survivingSibling.Parent = grandParent;
-
-        if (grandParent.FirstChild == parent)
+        // Case 1: The node being removed is the root itself
+        if (root == null || nodeToRemove == root)
         {
-            grandParent.FirstChild = survivingSibling;
-        }
-        else if (grandParent.SecondChild == parent)
-        {
-            grandParent.SecondChild = survivingSibling;
+            return null;
         }
 
-        return root;
+        // Resolve parent SplitNode
+        var parent = nodeToRemove.Parent as SplitNode ?? FindParentSplitNode(root, nodeToRemove);
+        if (parent == null)
+        {
+            return root;
+        }
+
+        // Determine the sibling node that should survive
+        LayoutNode? survivingSibling = null;
+        if (parent.FirstChild == nodeToRemove)
+        {
+            survivingSibling = parent.SecondChild;
+        }
+        else if (parent.SecondChild == nodeToRemove)
+        {
+            survivingSibling = parent.FirstChild;
+        }
+
+        if (survivingSibling == null)
+        {
+            return root;
+        }
+
+        // Promote the surviving sibling to take the place of the parent SplitNode
+        var grandParent = parent.Parent as SplitNode ?? FindParentSplitNode(root, parent);
+
+        if (grandParent != null)
+        {
+            survivingSibling.Parent = grandParent;
+
+            if (grandParent.FirstChild == parent)
+            {
+                grandParent.FirstChild = survivingSibling;
+            }
+            else if (grandParent.SecondChild == parent)
+            {
+                grandParent.SecondChild = survivingSibling;
+            }
+
+            return root;
+        }
+        else
+        {
+            // Parent was the root; surviving sibling becomes the new root
+            survivingSibling.Parent = null;
+            return survivingSibling;
+        }
     }
-    else
+
+    /// <summary>
+    /// Helper to find the parent SplitNode of a given target child if parent pointers are unassigned.
+    /// </summary>
+    private SplitNode? FindParentSplitNode(LayoutNode? root, LayoutNode targetChild)
     {
-        // Parent was the root; surviving sibling becomes the new root
-        survivingSibling.Parent = null;
-        return survivingSibling;
+        if (root is not SplitNode splitNode) return null;
+
+        if (splitNode.FirstChild == targetChild || splitNode.SecondChild == targetChild)
+        {
+            return splitNode;
+        }
+
+        return FindParentSplitNode(splitNode.FirstChild, targetChild) 
+            ?? FindParentSplitNode(splitNode.SecondChild, targetChild);
     }
-}
 
-/// <summary>
-/// Helper to find the parent SplitNode of a given target child if parent pointers are unassigned.
-/// </summary>
-private SplitNode? FindParentSplitNode(LayoutNode? root, LayoutNode targetChild)
-{
-    if (root is not SplitNode splitNode) return null;
-
-    if (splitNode.FirstChild == targetChild || splitNode.SecondChild == targetChild)
+    public LayoutNode? FindLayoutNode()
     {
-        return splitNode;
+        // What parameter do we need here to clearly identify a PaneNode or rather assign it to a sidebar button?
+        return null;
     }
-
-    return FindParentSplitNode(splitNode.FirstChild, targetChild) 
-        ?? FindParentSplitNode(splitNode.SecondChild, targetChild);
-}
 }

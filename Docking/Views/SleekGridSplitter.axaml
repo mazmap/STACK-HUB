@@ -1,0 +1,43 @@
+<GridSplitter xmlns="https://github.com/avaloniaui"
+              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+              xmlns:views="clr-namespace:STACK_HUB.Docking.Views"
+              x:Class="STACK_HUB.Docking.Views.SleekGridSplitter"
+              ClipToBounds="False">
+    <GridSplitter.Styles>
+        <!-- Horizontal Splitter Template -->
+        <Style Selector="views|SleekGridSplitter:horizontal">
+            <Setter Property="MinWidth" Value="1"/>
+            <Setter Property="Width" Value="1"/>
+            <Setter Property="ZIndex" Value="1000"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Width="16" Background="Transparent" IsHitTestVisible="True">
+                        <Border Width="1"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Stretch"
+                                Background="{TemplateBinding Background}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+
+        <!-- Vertical Splitter Template -->
+        <Style Selector="views|SleekGridSplitter:vertical">
+            <Setter Property="MinHeight" Value="1"/>
+            <Setter Property="Height" Value="1"/>
+            <Setter Property="ZIndex" Value="1000"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Height="16" Background="Transparent" IsHitTestVisible="True">
+                        <Border Height="1"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Stretch"
+                                Background="{TemplateBinding Background}"/>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+        </Style>
+    </GridSplitter.Styles>
+</GridSplitter>

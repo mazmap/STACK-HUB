@@ -1,7 +1,10 @@
 using System;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Templates;
 using Avalonia.Data;
 using Avalonia.Layout;
+using Avalonia.Media;
 using STACK_HUB.Docking.Models;
 using STACK_HUB.Docking.Templates; // Make sure this is imported
 
@@ -37,7 +40,10 @@ public class SplitNodeControl : Grid
             ContentTemplate = Selector 
         };
 
-        var splitter = new GridSplitter();
+        var splitter = new SleekGridSplitter
+        {
+            Background = Brushes.Black, 
+        };
 
         if (split.Orientation == Orientation.Horizontal)
         {
@@ -49,8 +55,9 @@ public class SplitNodeControl : Grid
             Grid.SetColumn(splitter, 1);
             Grid.SetColumn(secondHost, 2);
 
-            splitter.Width = 4;
             splitter.HorizontalAlignment = HorizontalAlignment.Center;
+            splitter.VerticalAlignment = VerticalAlignment.Stretch;
+            splitter.ResizeDirection = GridResizeDirection.Columns;
         }
         else
         {
@@ -62,8 +69,9 @@ public class SplitNodeControl : Grid
             Grid.SetRow(splitter, 1);
             Grid.SetRow(secondHost, 2);
 
-            splitter.Height = 4;
             splitter.VerticalAlignment = VerticalAlignment.Center;
+            splitter.HorizontalAlignment = HorizontalAlignment.Stretch;
+            splitter.ResizeDirection = GridResizeDirection.Rows;
         }
 
         Children.Add(firstHost);

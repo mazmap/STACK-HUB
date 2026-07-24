@@ -9,6 +9,8 @@ public partial class TabGroupNode : LayoutNode
 
     [ObservableProperty]
     private PaneNode? _activePane;
+    
+    // TODO: Add _selectedPane
 
     public void AddPane(PaneNode pane)
     {
