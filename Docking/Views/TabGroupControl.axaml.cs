@@ -78,7 +78,8 @@ public partial class TabGroupControl : UserControl
 
                 // Clear visual preview upon drop
                 var canvas = topLevel.FindControl<Canvas>("DragOverlayCanvas");
-                canvas?.Children.Clear();
+                canvas?.Children.Remove(_dragGhost);
+                HideDockPreview();
             }
         }
 
@@ -168,7 +169,7 @@ public partial class TabGroupControl : UserControl
             }
         }
 
-        RemoveDockPreview(canvas);
+        HideDockPreview();
     }
 
     private void DrawDockPreview(Canvas canvas, Rect targetBounds, DockPosition position)
@@ -193,13 +194,19 @@ public partial class TabGroupControl : UserControl
                 ZIndex = 1,
                 IsHitTestVisible = false
             };
+        }
+
+        if (!canvas.Children.Contains(_previewRectangle))
+        {
             canvas.Children.Add(_previewRectangle);
         }
 
+        _previewRectangle.IsVisible = true;
         _previewRectangle.Width = previewRect.Width;
         _previewRectangle.Height = previewRect.Height;
         Canvas.SetLeft(_previewRectangle, previewRect.X);
-        Canvas.SetTop(_previewRectangle, previewRect.Y);    }
+        Canvas.SetTop(_previewRectangle, previewRect.Y);    
+    }
 
     private void RemoveDockPreview(Canvas canvas)
     {
@@ -210,6 +217,14 @@ public partial class TabGroupControl : UserControl
         }
     }
 
+    private void HideDockPreview()
+    {
+        if (_previewRectangle != null)
+        {
+           _previewRectangle.IsVisible = false;
+        }
+    }
+    
     private DockPosition CalculateDockPosition(Rect bounds, Point relativePoint)
     {
         double xRatio = relativePoint.X / bounds.Width;
@@ -229,11 +244,7 @@ public partial class TabGroupControl : UserControl
     {
         // 1. Release pointer capture FIRST before mutating the layout model
         e.Pointer.Capture(null);
-
-        // Clear overlay preview
-        var canvas = topLevel.FindControl<Canvas>("DragOverlayCanvas");
-        canvas?.Children.Clear();
-
+        
         var hitControl = topLevel.InputHitTest(dropPoint) as Visual;
         var targetControl = hitControl?.FindAncestorOfType<TabGroupControl>();
 
