@@ -2,6 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.VisualTree;
 using STACK_HUB.Docking.Models;
@@ -15,6 +16,8 @@ public partial class TabGroupControl : UserControl
     private Point _dragStartPoint;
     private bool _isDragging;
     private PaneNode? _draggedPane;
+    private Border? _dragGhost;
+    private Avalonia.Controls.Shapes.Rectangle? _previewRectangle;
 
     public TabGroupControl()
     {
@@ -79,6 +82,7 @@ public partial class TabGroupControl : UserControl
 
         _isDragging = false;
         _draggedPane = null;
+        _dragGhost = null;
     }
     
     private void UpdateDockOverlay(TopLevel topLevel, Point pointerPosition)
@@ -88,6 +92,48 @@ public partial class TabGroupControl : UserControl
 
         var canvas = topLevel.FindControl<Canvas>("DragOverlayCanvas");
         if (canvas == null) return;
+        
+        var canvasTransform = topLevel.TransformToVisual(canvas);
+        if (canvasTransform.HasValue)
+        {
+            var canvasPos = canvasTransform.Value.Transform(pointerPosition);
+            if (_dragGhost == null && _draggedPane != null)
+            {
+                _dragGhost = new Border
+                {
+                    Background = new SolidColorBrush(Color.Parse("#2D2D2D")),
+                    BorderBrush = new SolidColorBrush(Color.Parse("#007ACC")),
+                    BorderThickness = new Thickness(1),
+                    CornerRadius = new CornerRadius(3),
+                    Padding = new Thickness(8, 4),
+                    Opacity = 0.85,
+                    IsHitTestVisible = false, // Critical: don't block pointer hit-testing!
+                    ZIndex = 100,
+                    Child = new TextBlock
+                    {
+                        Text = _draggedPane.Title,
+                        FontSize = 12,
+                        Foreground = Brushes.White,
+                        VerticalAlignment = VerticalAlignment.Center
+                    }
+                };
+
+                canvas.Children.Add(_dragGhost);
+            }
+                
+            if (_dragGhost != null)
+            {
+                // Use DesiredSize if Bounds hasn't updated yet, or fall back to Bounds.Size
+                Size ghostSize = _dragGhost.Bounds.Width > 0 
+                    ? _dragGhost.Bounds.Size 
+                    : _dragGhost.DesiredSize;
+
+                double centerX = canvasPos.X - (ghostSize.Width / 2.0);
+                double centerY = canvasPos.Y - (ghostSize.Height / 2.0);
+
+                Canvas.SetLeft(_dragGhost, centerX);
+                Canvas.SetTop(_dragGhost, centerY);
+            }        }
 
         if (targetTabGroupControl != null && targetTabGroupControl.DataContext is TabGroupNode targetTabGroupNode)
         {
@@ -120,43 +166,47 @@ public partial class TabGroupControl : UserControl
             }
         }
 
-        canvas.Children.Clear();
+        RemoveDockPreview(canvas);
     }
 
-private void DrawDockPreview(Canvas canvas, Rect targetBounds, DockPosition position)
-{
-    canvas.Children.Clear();
-
-    // Use nullable Rect? to avoid needing Rect.Empty
-    Rect? previewRect = position switch
+    private void DrawDockPreview(Canvas canvas, Rect targetBounds, DockPosition position)
     {
-        DockPosition.Left => new Rect(targetBounds.X, targetBounds.Y, targetBounds.Width / 2, targetBounds.Height),
-        DockPosition.Right => new Rect(targetBounds.X + targetBounds.Width / 2, targetBounds.Y, targetBounds.Width / 2, targetBounds.Height),
-        DockPosition.Top => new Rect(targetBounds.X, targetBounds.Y, targetBounds.Width, targetBounds.Height / 2),
-        DockPosition.Bottom => new Rect(targetBounds.X, targetBounds.Y + targetBounds.Height / 2, targetBounds.Width, targetBounds.Height / 2),
-        DockPosition.Center => targetBounds,
-        _ => null
-    };
+        // Use nullable Rect? to avoid needing Rect.Empty
+        Rect previewRect = position switch
+        {
+            DockPosition.Left => new Rect(targetBounds.X, targetBounds.Y, targetBounds.Width / 2, targetBounds.Height),
+            DockPosition.Right => new Rect(targetBounds.X + targetBounds.Width / 2, targetBounds.Y, targetBounds.Width / 2, targetBounds.Height),
+            DockPosition.Top => new Rect(targetBounds.X, targetBounds.Y, targetBounds.Width, targetBounds.Height / 2),
+            DockPosition.Bottom => new Rect(targetBounds.X, targetBounds.Y + targetBounds.Height / 2, targetBounds.Width, targetBounds.Height / 2),
+            DockPosition.Center => targetBounds
+        };
 
-    if (!previewRect.HasValue) return;
+        if (_previewRectangle == null)
+        {
+            _previewRectangle = new Avalonia.Controls.Shapes.Rectangle
+            {
+                Fill = new SolidColorBrush(Color.Parse("#007ACC"), opacity: 0.35),
+                Stroke = new SolidColorBrush(Color.Parse("#007ACC")),
+                StrokeThickness = 2,
+                ZIndex = 1,
+                IsHitTestVisible = false
+            };
+            canvas.Children.Add(_previewRectangle);
+        }
 
-    var rect = previewRect.Value;
+        _previewRectangle.Width = previewRect.Width;
+        _previewRectangle.Height = previewRect.Height;
+        Canvas.SetLeft(_previewRectangle, previewRect.X);
+        Canvas.SetTop(_previewRectangle, previewRect.Y);    }
 
-    var highlightBox = new Avalonia.Controls.Shapes.Rectangle
+    private void RemoveDockPreview(Canvas canvas)
     {
-        Width = rect.Width,
-        Height = rect.Height,
-        Fill = new SolidColorBrush(Color.Parse("#007ACC"), opacity: 0.35),
-        Stroke = new SolidColorBrush(Color.Parse("#007ACC")),
-        StrokeThickness = 2,
-        IsHitTestVisible = false
-    };
-
-    Canvas.SetLeft(highlightBox, rect.X);
-    Canvas.SetTop(highlightBox, rect.Y);
-
-    canvas.Children.Add(highlightBox);
-}
+        if (_previewRectangle != null)
+        {
+            canvas.Children.Remove(_previewRectangle);
+            _previewRectangle = null;
+        }
+    }
 
     private DockPosition CalculateDockPosition(Rect bounds, Point relativePoint)
     {
