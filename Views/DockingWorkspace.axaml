@@ -8,7 +8,7 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="STACK_HUB.Views.DockingWorkspace"
              x:DataType="viewModels:DockingWorkspaceModel"
-             x:Name="RootWorkspace">
+             x:Name="RootWorkspace" Background="#191A1C">
 
     <UserControl.Resources>
         <templates:LayoutTemplateSelector x:Key="LayoutSelector" />
