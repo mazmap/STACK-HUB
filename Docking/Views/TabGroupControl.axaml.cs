@@ -8,6 +8,7 @@ using Avalonia.VisualTree;
 using STACK_HUB.Docking.Models;
 using STACK_HUB.Docking.Services;
 using STACK_HUB.ViewModels;
+using STACK_HUB.Views;
 
 namespace STACK_HUB.Docking.Views;
 
@@ -73,12 +74,16 @@ public partial class TabGroupControl : UserControl
             var topLevel = TopLevel.GetTopLevel(this);
             if (topLevel != null)
             {
+                // If the following two lines are executed after ExecuteDrop(...), then this.FindAncestorOfType returns null,
+                // probably because on split this TabGroupControl gets removed from the View Tree when the Layout Tree gets normalized
+                // on Split by LayoutManager when the attached TabGroupNode gets detached from the Layout Tree
+                var workspace = this.FindAncestorOfType<DockingWorkspace>();
+                workspace?.RemoveFromCanvasOverlay(_dragGhost);
+                
+                // TODO: Refactor the topLevel usage (potentially not necessary)
                 var dropPoint = e.GetPosition(topLevel);
                 ExecuteDrop(topLevel, dropPoint, _draggedPane, e);
-
-                // Clear visual preview upon drop
-                var canvas = topLevel.FindControl<Canvas>("DragOverlayCanvas");
-                canvas?.Children.Remove(_dragGhost);
+                
                 HideDockPreview();
             }
         }
@@ -93,7 +98,8 @@ public partial class TabGroupControl : UserControl
         var hitControl = topLevel.InputHitTest(pointerPosition) as Visual;
         var targetTabGroupControl = hitControl?.FindAncestorOfType<TabGroupControl>();
 
-        var canvas = topLevel.FindControl<Canvas>("DragOverlayCanvas");
+        var workspace = hitControl.FindAncestorOfType<DockingWorkspace>();
+        var canvas = workspace?.FindControl<Canvas>("DragOverlayCanvas");
         if (canvas == null) return;
         
         var canvasTransform = topLevel.TransformToVisual(canvas);
@@ -259,16 +265,12 @@ public partial class TabGroupControl : UserControl
                 if (currentGroup == targetNode && currentGroup.Panes.Count == 1)
                     return;
 
-                if (topLevel.DataContext is MainViewModel mainVm)
+                var workspace = targetControl.FindAncestorOfType<DockingWorkspace>();
+                if (workspace?.DataContext is DockingWorkspaceModel workspaceVm)
                 {
-                    var currentRoot = mainVm.RootLayout;
-
-                    // 2. Perform atomic relocate (Close source + Dock target + Normalize tree)
-                    mainVm.LayoutManager.RelocatePane(sourcePane, targetNode, position, ref currentRoot);
-
-                    // 3. Update main root property to refresh UI bindings
-                    mainVm.RootLayout = currentRoot;
-                }
+                    // 5. Delegate pure tree mutation to the ViewModel
+                    workspaceVm.RelocatePane(sourcePane, targetNode, position);
+                }            
             }
         }
     }

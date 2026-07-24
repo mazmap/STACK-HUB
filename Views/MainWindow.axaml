@@ -1,58 +1,35 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:STACK_HUB.ViewModels"
-        xmlns:models="using:STACK_HUB.Models"
-        xmlns:templates="clr-namespace:STACK_HUB.Docking.Templates"
+        xmlns:docking="clr-namespace:STACK_HUB.Docking.Views"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        xmlns:views="clr-namespace:STACK_HUB.Views"
+        mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
         x:Class="STACK_HUB.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Background="#26282C"
         Icon="/Assets/avalonia-logo.ico"
         Title="STACK HUB">
-    <Window.Resources>
-        <templates:LayoutTemplateSelector x:Key="LayoutSelector" />
-    </Window.Resources>
-    
-    <Design.DataContext>
-        <!-- This only sets the DataContext for the previewer in an IDE,
-             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-        <vm:MainViewModel />
-    </Design.DataContext>
 
-  <Grid RowDefinitions="Auto, *">
-    <!-- Top Toolbar / Menu Bar -->
-    <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#2D2D2D" Spacing="8">
-      <Button Content="+ Open Terminal (Bottom Dock)" 
-              Command="{Binding OpenNewTerminalCommand}" />
-    </StackPanel>
+    <Grid RowDefinitions="Auto, *">
+        <!-- Top Toolbar / Menu Bar -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#2D2D2D" Spacing="8">
+            <TextBlock Text="Top-Bar"/>
+        </StackPanel>
 
-    <!-- 1. Placeholder shown when RootLayout is null -->
-    <StackPanel Grid.Row="1" HorizontalAlignment="Center" 
-                VerticalAlignment="Center" 
-                Spacing="12"
-                IsVisible="{Binding RootLayout, Converter={x:Static ObjectConverters.IsNull}}">
-        <TextBlock Text="No Editors Open" 
-                   FontSize="18" 
-                   FontWeight="SemiBold" 
-                   HorizontalAlignment="Center" 
-                   Foreground="#808080" />
-        <TextBlock Text="Use the top bar or press shortcut keys to open a terminal or file." 
-                   FontSize="12" 
-                   HorizontalAlignment="Center" 
-                   Foreground="#606060" />
-    </StackPanel>
-    
-    <!-- 2. Active Layout Tree shown when RootLayout is not null -->
-    <ContentControl Grid.Row="1" Content="{Binding RootLayout}" 
-                    ContentTemplate="{StaticResource LayoutSelector}" 
-                    IsVisible="{Binding RootLayout, Converter={x:Static ObjectConverters.IsNotNull}}" />
-    
-    <!-- Canvas Overlay for Drag Indicator / Compass -->
-    <Canvas Grid.Row="1" x:Name="DragOverlayCanvas" 
-            IsHitTestVisible="False" 
-            HorizontalAlignment="Stretch" 
-            VerticalAlignment="Stretch" />
-  </Grid>
+        <!-- Main Body Area with Sidebar and Workspace -->
+        <Grid Grid.Row="1" ColumnDefinitions="Auto, *">
+            <!-- Left Sidebar -->
+            <Border Grid.Column="0" Width="220" Background="#1E1E1E">
+                <TextBlock Text="Sidebar Content" 
+                           Foreground="#808080" 
+                           Margin="12" 
+                           HorizontalAlignment="Center"/>
+            </Border>
+
+            <!-- Workspace Area: Your Encapsulated Tiling Control -->
+            <views:DockingWorkspace Grid.Column="1"/>
+        </Grid>
+    </Grid>
 </Window>
