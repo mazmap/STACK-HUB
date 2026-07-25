@@ -12,8 +12,22 @@
         Background="#2D2D2D"
         Icon="/Assets/avalonia-logo.ico"
         Title="STACK HUB">
+  <Window.Styles>
+    <Style Selector="Button.tree-item">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="#94A3B8"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="HorizontalContentAlignment" Value="Left"/>
+      <Setter Property="Padding" Value="8,6"/>
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+    <Style Selector="Button.tree-item:pointerover">
+      <Setter Property="Background" Value="#1E1F2B"/>
+      <Setter Property="Foreground" Value="White"/>
+    </Style>
+  </Window.Styles>
 
-    <Grid RowDefinitions="Auto, *">
+  <Grid RowDefinitions="Auto, *">
         <!-- Top Toolbar / Menu Bar -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#2D2D2D" Spacing="8">
             <TextBlock Text="Top-Bar"/>
@@ -33,15 +47,15 @@
               <!-- Category 1: Settings -->
               <StackPanel>
                 <TextBlock Text="Question settings"/>
-                <Button Content="General settings"/>
-                <Button Content="Maxima settings"/>
+                <Button Content="General settings" Classes="tree-item"/>
+                <Button Content="Maxima settings" Classes="tree-item"/>
               </StackPanel>
 
               <!-- Category 2: Main Content -->
               <StackPanel>
                 <TextBlock Text="Main content"/>
-                <Button Content="Question variables"/>
-                <Button Content="Question text"/>
+                <Button Content="Question variables" Classes="tree-item"/>
+                <Button Content="Question text" Classes="tree-item"/>
               </StackPanel>
 
               <!-- Category 3: Input Settings list -->
@@ -50,7 +64,7 @@
                 <ItemsControl ItemsSource="{Binding ActiveQuestion.Inputs}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="models:StackInput">
-                      <Button Content="{Binding Name}" Classes="tree-item"  CommandParameter="{Binding Id}" Margin="8,0,0,0"/>
+                      <Button Content="{Binding Name}" Classes="tree-item"  CommandParameter="{Binding Id}"/>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -69,7 +83,7 @@
                 <ItemsControl ItemsSource="{Binding ActiveQuestion.Prts}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="models:StackPrt">
-                      <Button Content="{Binding Name}" Classes="tree-item"  CommandParameter="{Binding Id}" Margin="8,0,0,0"/>
+                      <Button Content="{Binding Name}" Classes="tree-item"  CommandParameter="{Binding Id}"/>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
