@@ -185,8 +185,7 @@
         <TabControl.ContentTemplate>
             <DataTemplate DataType="models:PaneNode">
                 <!-- Explicitly assign ContentTemplate to trigger template resolution -->
-                <ContentControl Content="{Binding ContentViewModel}" 
-                                ContentTemplate="{StaticResource LayoutSelector}" />
+                <ContentControl Content="{Binding ContentViewModel}" />
             </DataTemplate>
         </TabControl.ContentTemplate>
     </TabControl>

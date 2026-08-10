@@ -7,6 +7,9 @@ namespace STACK_HUB.Docking.Models;
 public partial class PaneNode : LayoutNode
 {
     [ObservableProperty]
+    private string _id = Guid.NewGuid().ToString();
+    
+    [ObservableProperty]
     private string _title = string.Empty;
 
     [ObservableProperty]

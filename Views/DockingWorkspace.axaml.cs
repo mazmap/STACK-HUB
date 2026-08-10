@@ -10,7 +10,6 @@ public partial class DockingWorkspace : UserControl
     public DockingWorkspace()
     {
         InitializeComponent();
-        DataContext = new DockingWorkspaceModel();
     }
     
     public void ClearOverlay()

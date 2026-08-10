@@ -1,3 +1,4 @@
+using System.Linq;
 using Avalonia.Layout;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -26,45 +27,104 @@ public partial class DockingWorkspaceModel : ObservableObject
 
     private void InitializeDefaultLayout()
     {
-        // 1. Create Left Pane Group (Solution Explorer)
-        var leftGroup = new TabGroupNode();
-        leftGroup.AddPane(CreatePane("Solution Explorer", "File Tree View"));
-        leftGroup.ActivePane = leftGroup.Panes[0];
+        // // 1. Create Left Pane Group (Solution Explorer)
+        // var leftGroup = new TabGroupNode();
+        // leftGroup.AddPane(CreatePane("Solution Explorer", "File Tree View"));
+        // leftGroup.ActivePane = leftGroup.Panes[0];
 
-        // 2. Create Right Pane Group (Code Editor)
-        var rightGroup = new TabGroupNode();
-        rightGroup.AddPane(CreatePane("MainWindow.axaml", "<Window> Code View </Window>"));
-        rightGroup.AddPane(CreatePane("MainWindow.axaml.cs", "C# code view"));
-        rightGroup.ActivePane = rightGroup.Panes[0];
+        // // 2. Create Right Pane Group (Code Editor)
+        // var rightGroup = new TabGroupNode();
+        // rightGroup.AddPane(CreatePane("MainWindow.axaml", "<Window> Code View </Window>"));
+        // rightGroup.AddPane(CreatePane("MainWindow.axaml.cs", "C# code view"));
+        // rightGroup.ActivePane = rightGroup.Panes[0];
 
-        // 3. Create Root Split Container
-        var rootSplit = new SplitNode
-        {
-            Orientation = Orientation.Horizontal,
-            Ratio = 0.3,
-            FirstChild = leftGroup,
-            SecondChild = rightGroup
-        };
+        // // 3. Create Root Split Container
+        // var rootSplit = new SplitNode
+        // {
+        //     Orientation = Orientation.Horizontal,
+        //     Ratio = 0.3,
+        //     FirstChild = leftGroup,
+        //     SecondChild = rightGroup
+        // };
 
-// CRITICAL: Ensure children know their parent!
-        leftGroup.Parent = rootSplit;
-        rightGroup.Parent = rootSplit;
+        // CRITICAL: Ensure children know their parent!
+        // leftGroup.Parent = rootSplit;
+        // rightGroup.Parent = rootSplit;
 
-        RootLayout = rootSplit;
+        // RootLayout = rootSplit;
     }
     
-    private PaneNode CreatePane(string title, object content)
+    private PaneNode CreatePane(string id, string title, object content)
     {
         var pane = new PaneNode
         {
+            Id = id,
             Title = title,
-            ContentViewModel = content
+            ContentViewModel = content,
+            OnCloseRequested = ClosePane
         };
-    
-        // Inject close delegate
-        pane.OnCloseRequested = p => ClosePane(p);
-    
+
         return pane;
+    }
+
+    public void OpenOrFocusPane(string paneId, string title, object contentViewModel)
+    {
+        // Case 1: Workspace is completely empty -> initialize root with a new TabGroup
+        if (RootLayout == null)
+        {
+            var pane = CreatePane(paneId, title, contentViewModel);
+            var initialGroup = new TabGroupNode();
+            initialGroup.AddPane(pane);
+            initialGroup.ActivePane = pane;
+
+            RootLayout = initialGroup;
+            return;
+        }
+
+        // Case 2: Pane is already open -> bring its tab to focus
+        var existingPane = FindPaneById(RootLayout, paneId);
+        if (existingPane != null)
+        {
+            if (existingPane.Parent is TabGroupNode group)
+            {
+                group.ActivePane = existingPane;
+            }
+            return;
+        }
+
+        // Case 3: Pane is not open -> add it to an existing tab group
+        var newPane = CreatePane(paneId, title, contentViewModel);
+        var targetGroup = FindFirstTabGroup(RootLayout);
+
+        if (targetGroup != null)
+        {
+            targetGroup.AddPane(newPane);
+            targetGroup.ActivePane = newPane;
+            // No RootLayout re-assignment needed here!
+            // ObservableCollection notifies UI of the new tab automatically.
+        }
+        else
+        {
+            // Fallback if no TabGroup exists in the current tree
+            var newGroup = new TabGroupNode();
+            newGroup.AddPane(newPane);
+            newGroup.ActivePane = newPane;
+
+            RootLayout = newGroup;
+        }
+    }
+
+    private PaneNode? FindPaneById(LayoutNode? node, string paneId)
+    {
+        if (node is TabGroupNode group)
+        {
+            return group.Panes.FirstOrDefault(p => p.Id == paneId);
+        }
+        if (node is SplitNode split)
+        {
+            return FindPaneById(split.FirstChild, paneId) ?? FindPaneById(split.SecondChild, paneId);
+        }
+        return null;
     }
 
     /// <summary>
@@ -80,37 +140,6 @@ public partial class DockingWorkspaceModel : ObservableObject
         
         // Notify UI of root tree mutation (triggers full dynamic UI re-render if root collapsed)
         RootLayout = root; 
-    }
-
-    /// <summary>
-    /// Command to add a new pane dynamically.
-    /// </summary>
-    [RelayCommand]
-    public void OpenNewTerminal()
-    {
-        if (RootLayout == null) return;
-
-        var newPane = CreatePane("Terminal", "Terminal Output Window");
-
-        var root = RootLayout;
-
-        // 1. Find the first available TabGroup in the tree to dock against
-        var targetGroup = FindFirstTabGroup(root);
-
-        if (targetGroup != null)
-        {
-            // Dock to the bottom of that tab group
-            _layoutManager.Dock(newPane, targetGroup, DockPosition.Bottom, ref root);
-        }
-        else
-        {
-            // If the layout is completely empty, start a new TabGroup at root
-            var initialGroup = new TabGroupNode();
-            initialGroup.Panes.Add(newPane);
-            root = initialGroup;
-        }
-
-        RootLayout = root;
     }
 
 // Helper method to recursively find a TabGroupNode

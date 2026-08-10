@@ -9,6 +9,7 @@
         mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="600"
         x:Class="STACK_HUB.Views.MainWindow"
         x:DataType="vm:MainViewModel"
+        x:Name="RootWindow"
         Background="#2D2D2D"
         Icon="/Assets/avalonia-logo.ico"
         Title="STACK HUB">
@@ -47,15 +48,15 @@
               <!-- Category 1: Settings -->
               <StackPanel>
                 <TextBlock Text="Question settings"/>
-                <Button Content="General settings" Classes="tree-item"/>
-                <Button Content="Maxima settings" Classes="tree-item"/>
+                <Button Content="General settings" Classes="tree-item" Command="{Binding OpenGeneralSettingsCommand}"/>
+                <Button Content="Maxima settings" Classes="tree-item" Command="{Binding OpenMaximaSettingsCommand}"/>
               </StackPanel>
 
               <!-- Category 2: Main Content -->
               <StackPanel>
                 <TextBlock Text="Main content"/>
-                <Button Content="Question variables" Classes="tree-item"/>
-                <Button Content="Question text" Classes="tree-item"/>
+                <Button Content="Question variables" Classes="tree-item" Command="{Binding OpenQuestionVariablesCommand}"/>
+                <Button Content="Question text" Classes="tree-item" Command="{Binding OpenQuestionTextCommand}"/>
               </StackPanel>
 
               <!-- Category 3: Input Settings list -->
@@ -93,8 +94,8 @@
           
           <GridSplitter Grid.Column="1" Background="Transparent" ResizeDirection="Columns"/>
 
-            <!-- Workspace Area: Your Encapsulated Tiling Control -->
-            <views:DockingWorkspace Grid.Column="2"/>
+          <!-- Workspace Area: Your Encapsulated Tiling Control -->
+          <views:DockingWorkspace Grid.Column="2" DataContext="{Binding Workspace}"/>
         </Grid>
     </Grid>
 </Window>
