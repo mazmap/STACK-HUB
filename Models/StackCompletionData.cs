@@ -19,8 +19,7 @@ public class StackCompletionData : ICompletionData
     public object Content => Text;          // Text displayed in dropdown list
     public object Description
     {
-        get => Description; // Tooltip description
-        set => Description = value;
+        get; // Tooltip description
     }
 
     public double Priority => 0;

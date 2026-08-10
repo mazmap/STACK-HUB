@@ -1,5 +1,7 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Platform;
 using AvaloniaEdit.CodeCompletion;
 using AvaloniaEdit.Highlighting;
 using STACK_HUB.Editor;
@@ -15,6 +17,20 @@ public partial class CASTextEditor : UserControl
     {
         InitializeComponent();
         Editor.SyntaxHighlighting = HighlightingManager.Instance.GetDefinition("HTML");
+        // Load theme from Assets/your_theme.icls
+        try
+        {
+            var uri = new Uri("avares://STACK-HUB/Assets/Rider_Islands_Dark.icls");
+            using (var stream = AssetLoader.Open(uri))
+            {
+                IclsThemeLoader.ApplyTheme(Editor, stream);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Could not load theme asset: {ex.Message}");
+        }
+        
         Editor.TextArea.TextEntered += TextArea_TextEntered;
         Editor.TextArea.TextEntering += TextArea_TextEntering;
         // Set editor content on load & DataContext change
