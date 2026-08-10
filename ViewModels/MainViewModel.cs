@@ -37,10 +37,7 @@ public partial class MainViewModel : ObservableObject
         Workspace.OpenOrFocusPane(
             paneId: "content:question_text",
             title: "Question Text",
-            contentViewModel: new CASTextEditorViewModel(
-                ActiveQuestion.QuestionText,
-                updatedText => ActiveQuestion.QuestionText = updatedText
-            )
+            contentViewModel: "Question Text Editor Content" 
         );
     }
     // Dynamic ItemsControl items use their unique model ID
