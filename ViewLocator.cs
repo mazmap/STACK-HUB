@@ -5,7 +5,9 @@ using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Templates;
 using STACK_HUB.Models;
+using STACK_HUB.Services;
 using STACK_HUB.ViewModels;
+using STACK_HUB.Views;
 
 namespace STACK_HUB;
 
@@ -21,8 +23,6 @@ public class ViewLocator : IDataTemplate
         {
             if (_viewCache.TryGetValue(param, out var cachedView))
             {
-                // 🛑 FIX: Detach cachedView from its previous visual/logical parent 
-                // before giving it to the new split pane ContentPresenter.
                 if (cachedView.Parent is ContentPresenter oldContentPresenter)
                 {
                     oldContentPresenter.Content = null;
@@ -43,7 +43,6 @@ public class ViewLocator : IDataTemplate
         var name = param.GetType().FullName!.Replace("ViewModel", "View", StringComparison.Ordinal);
         var type = Type.GetType(name);
 
-        // Fallback: If "CASTextEditorView" isn't found, check for "CASTextEditor"
         if (type == null && name.EndsWith("View"))
         {
             var withoutViewSuffix = name.Substring(0, name.Length - 4);
@@ -52,7 +51,10 @@ public class ViewLocator : IDataTemplate
 
         if (type != null)
         {
-            var view = (Control)Activator.CreateInstance(type)!;
+            // 🚀 If creating CasTextEditor, fetch a pre-constructed instance from the pool in 0ms!
+            Control view = type == typeof(CasTextEditor) 
+                ? CasTextEditorPool.GetOrCreate() 
+                : (Control)Activator.CreateInstance(type)!;
 
             if (param is ICacheablePane)
             {

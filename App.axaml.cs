@@ -21,6 +21,7 @@ public partial class App : Application
         {
             // 1. Pre-warm TextMate themes & grammars in background
             TextMateService.Prewarm();
+            CasTextEditorPool.Prewarm();
 
             // 2. Pre-warm AvaloniaEdit Control Templates & JIT compilation
             // Runs on background UI priority while the MainWindow opens
