@@ -38,7 +38,7 @@
             <!-- 2D Interactive Graph Scroll Area -->
             <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#18181A">
                 
-                <Canvas Width="2000" Height="1500" Background="#18181A">
+                <Canvas x:Name="GraphCanvas" Width="2000" Height="1500" Background="#18181A" PointerMoved="OnCanvasPointerMoved" PointerReleased="OnCanvasPointerReleased">
                     
                     <!-- 1. BEZIER CONNECTING WIRES LAYER -->
                     <ItemsControl ItemsSource="{Binding GraphWires}">
@@ -101,7 +101,7 @@
                                         <Grid RowDefinitions="Auto, Auto, Auto">
                                             
                                             <!-- Top Input Port Dot -->
-                                            <Ellipse Width="10" Height="10" Fill="#007ACC" HorizontalAlignment="Center" Margin="0,-15,0,6"/>
+                                            <Ellipse Width="12" Height="12" Fill="#007ACC" HorizontalAlignment="Center" Margin="0,-15,0,6"/>
 
                                             <!-- Card Header -->
                                             <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
@@ -119,15 +119,27 @@
                                             <!-- Bottom Output Ports -->
                                             <Grid Grid.Row="2" ColumnDefinitions="*, *">
                                                 <!-- True Output Port (Green) -->
-                                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Left">
-                                                    <Ellipse Width="9" Height="9" Fill="#4EC9B0" />
-                                                    <TextBlock Text="True" Foreground="#4EC9B0" FontSize="10" FontWeight="Bold" />
+                                                <StackPanel Grid.Column="0" 
+                                                            Orientation="Horizontal" 
+                                                            Spacing="4" 
+                                                            HorizontalAlignment="Left" 
+                                                            Background="Transparent" 
+                                                            PointerPressed="OnPortPointerPressed" 
+                                                            Tag="True">
+                                                    <Ellipse Width="11" Height="11" Fill="#4EC9B0" />
+                                                    <TextBlock Text="True" Foreground="#4EC9B0" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
                                                 </StackPanel>
 
                                                 <!-- False Output Port (Red) -->
-                                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right">
-                                                    <TextBlock Text="False" Foreground="#F92672" FontSize="10" FontWeight="Bold" />
-                                                    <Ellipse Width="9" Height="9" Fill="#F92672" />
+                                                <StackPanel Grid.Column="1" 
+                                                            Orientation="Horizontal" 
+                                                            Spacing="4" 
+                                                            HorizontalAlignment="Right" 
+                                                            Background="Transparent" 
+                                                            PointerPressed="OnPortPointerPressed" 
+                                                            Tag="False">
+                                                    <TextBlock Text="False" Foreground="#F92672" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+                                                    <Ellipse Width="11" Height="11" Fill="#F92672" />
                                                 </StackPanel>
                                             </Grid>
                                         </Grid>

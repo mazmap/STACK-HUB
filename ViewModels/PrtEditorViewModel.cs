@@ -221,6 +221,20 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
         return null;
     }
 
+    public void ConnectBranch(StackPrtNode sourceNode, string branchType, StackPrtNode? targetNode)
+    {
+        string targetValue = targetNode != null ? targetNode.Name : "-1";
+        if (branchType == "True")
+        {
+            sourceNode.NextNodeTrue = targetValue;
+        }
+        else if (branchType == "False")
+        {
+            sourceNode.NextNodeFalse = targetValue;
+        }
+        RebuildGraph();
+    }
+
     [RelayCommand]
     private void SelectNode(StackPrtNode? node)
     {
