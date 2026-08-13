@@ -51,19 +51,25 @@ public class ViewLocator : IDataTemplate
 
         if (type != null)
         {
-            // 🚀 If creating CasTextEditor, fetch a pre-constructed instance from the pool in 0ms!
-            Control view = type == typeof(CasTextEditor) 
-                ? CasTextEditorPool.GetOrCreate() 
-                : (Control)Activator.CreateInstance(type)!;
-
+            Control view;
+            if (type == typeof(CasTextEditor))
+            {
+                view = EditorPool<CasTextEditor>.GetOrCreate();
+            }
+            else if (type == typeof(MaximaEditor))
+            {
+                view = EditorPool<MaximaEditor>.GetOrCreate();
+            }
+            else
+            {
+                view = (Control)Activator.CreateInstance(type)!;
+            }
             if (param is ICacheablePane)
             {
                 _viewCache.AddOrUpdate(param, view);
             }
-
             return view;
         }
-
         return new TextBlock { Text = "Not Found: " + name };
     }
 

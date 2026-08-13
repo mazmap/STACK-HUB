@@ -1,0 +1,14 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:avaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+             x:Class="STACK_HUB.Views.MaximaEditor">
+    <Grid>
+        <avaloniaEdit:TextEditor x:Name="Editor"
+                                 FontFamily="Iosevka, Cascadia Code, Consolas, monospace"
+                                 FontSize="14"
+                                 ShowLineNumbers="True"
+                                 WordWrap="True"
+                                 HorizontalScrollBarVisibility="Auto"
+                                 VerticalScrollBarVisibility="Auto" />
+    </Grid>
+</UserControl>

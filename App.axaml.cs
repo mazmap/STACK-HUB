@@ -1,3 +1,4 @@
+// App.axaml.cs
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -17,19 +18,22 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        // 1. Pre-warm TextMate themes & grammars
+        TextMateService.Prewarm();
+
+        // 2. Pre-warm Editor Pools
+        EditorPool<CasTextEditor>.EagerPrewarm();
+        EditorPool<MaximaEditor>.EagerPrewarm();
+
+        // 🚀 3. Force AvaloniaEdit assembly DLL & static constructors to load at app launch!
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            _ = AvaloniaEdit.TextEditor.FontFamilyProperty;
+            _ = new AvaloniaEdit.Document.TextDocument();
+        }, DispatcherPriority.Background);
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // 1. Pre-warm TextMate themes & grammars in background
-            TextMateService.Prewarm();
-            CasTextEditorPool.Prewarm();
-
-            // 2. Pre-warm AvaloniaEdit Control Templates & JIT compilation
-            // Runs on background UI priority while the MainWindow opens
-            Dispatcher.UIThread.Post(() =>
-            {
-                _ = new CasTextEditor(); // Forces Avalonia to parse templates & JIT compile code
-            }, DispatcherPriority.Background);
-
             desktop.MainWindow = new MainWindow
             {
                 DataContext = new MainViewModel(),

@@ -1,5 +1,7 @@
 using System;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
 using AvaloniaEdit.TextMate;
 using STACK_HUB.Services;
 using STACK_HUB.ViewModels;
@@ -7,20 +9,20 @@ using TextMateSharp.Grammars;
 
 namespace STACK_HUB.Views;
 
-public partial class CasTextEditor : UserControl
+public partial class MaximaEditor : UserControl
 {
-    public CasTextEditor()
+    public MaximaEditor()
     {
         InitializeComponent();
         var textMateInstallation = Editor.InstallTextMate(TextMateService.Instance);
-        textMateInstallation.SetGrammar(TextMateService.Instance.GetScopeByLanguageId("html"));
+        textMateInstallation.SetGrammar(TextMateService.Instance.GetScopeByLanguageId("maxima"));
     }
-
+    
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
 
-        if (DataContext is CasTextEditorViewModel vm && Editor.Text != vm.Text)
+        if (DataContext is MaximaEditorViewModel vm && Editor.Text != vm.Text)
         {
             Editor.Text = vm.Text ?? string.Empty;
         }

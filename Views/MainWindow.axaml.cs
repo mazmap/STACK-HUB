@@ -10,6 +10,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         DataContext = new MainViewModel();
         // Pre-warm non-empty text document layout & line tree at launch
-        PrewarmEditor.DataContext = new CasTextEditorViewModel("<p>Prewarm text</p>");
+        PrewarmCasTextEditor.DataContext = new CasTextEditorViewModel("<p>Prewarm text</p>");
+        PrewarmMaximaEditor.DataContext = new MaximaEditorViewModel("ta1: ?;");
     }
 }

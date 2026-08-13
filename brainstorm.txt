@@ -1,0 +1,27 @@
+Integrated git versioning: 
+- How is this organized?
+- What is the repository? 
+
+PRT Editor
+
+Maxima syntax highlighting support (second editor)
+
+Preview Pane (that can also be moved into a separate window or opened in a browser via localhost, see Webstorm Live Editing)
+
+Maybe for better maxima syntax feedback use the STACK Maxima environment (https://docs.stack-assessment.org/en/CAS/STACK-Maxima_sandbox/) as the STACK Maxima errors seem to be imprecice (Maybe because they are custom but also potentially because Maxima errors are just not good?)
+
+Load STACK File (Moodle XML)
+
+Export STACK File (Moodle XML)
+
+Home-Screen to select projects/databases and browse them (backed by a git repository)
+
+Testing Suite: Better graphical interface for systematic testing of STACK questions (https://docs.stack-assessment.org/en/STACK_question_admin/Testing/) 
+
+Settings panes
+
+Edit XML directly
+
+TODO panel 
+
+Chat integration for projects (which is then also integrated in the home view)

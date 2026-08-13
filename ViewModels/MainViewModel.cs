@@ -29,7 +29,16 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void OpenQuestionVariables()
     {
-        Workspace.OpenOrFocusPane("content:variables", "Question Variables", new CasTextEditorViewModel(ActiveQuestion.QuestionVariables));
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        Workspace.OpenOrFocusPane(
+            paneId: "content:variables", 
+            title: "Question Variables", 
+            contentViewModel: new MaximaEditorViewModel(ActiveQuestion.QuestionVariables));
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            sw.Stop();
+            System.Console.WriteLine($"[MaximaEditor]: {sw.ElapsedMilliseconds} ms");
+        }, DispatcherPriority.Render);
     }
     
     [RelayCommand]
@@ -41,11 +50,10 @@ public partial class MainViewModel : ObservableObject
             title: "Question Text",
             contentViewModel: new CasTextEditorViewModel(ActiveQuestion.QuestionText)
         );
-        // 🚀 Measure until Avalonia completes layout & drawing on screen
         Dispatcher.UIThread.InvokeAsync(() =>
         {
             sw.Stop();
-            System.Console.WriteLine($"⏱️ [FULL ON-SCREEN RENDER]: {sw.ElapsedMilliseconds} ms");
+            System.Console.WriteLine($"[CasTextEditor]: {sw.ElapsedMilliseconds} ms");
         }, DispatcherPriority.Render);
     }    
     // Dynamic ItemsControl items use their unique model ID

@@ -98,7 +98,8 @@
           <views:DockingWorkspace Grid.Column="2" DataContext="{Binding Workspace}"/>
         </Grid>
         <Canvas Width="0" Height="0" IsHitTestVisible="False">
-          <views:CasTextEditor x:Name="PrewarmEditor" Width="800" Height="600" Canvas.Left="-9999" Canvas.Top="-9999" />
+          <views:CasTextEditor x:Name="PrewarmCasTextEditor" Width="800" Height="600" Canvas.Left="-9999" Canvas.Top="-9999" />
+          <views:MaximaEditor x:Name="PrewarmMaximaEditor" Width="800" Height="600" Canvas.Left="-9999" Canvas.Top="-9999" />
         </Canvas>
     </Grid>
 </Window>
