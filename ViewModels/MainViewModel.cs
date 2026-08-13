@@ -55,6 +55,18 @@ public partial class MainViewModel : ObservableObject
             sw.Stop();
             System.Console.WriteLine($"[CasTextEditor]: {sw.ElapsedMilliseconds} ms");
         }, DispatcherPriority.Render);
+    }
+
+    [RelayCommand]
+    private void OpenSpecificFeedback()
+    {
+        Workspace.OpenOrFocusPane("content:specific_feedback", "Specific Feedback", new CasTextEditorViewModel(ActiveQuestion.SpecificFeedback));
+    }
+
+    [RelayCommand]
+    private void OpenGeneralFeedback()
+    {
+        Workspace.OpenOrFocusPane("content:general_feedback", "General Feedback", new CasTextEditorViewModel(ActiveQuestion.GeneralFeedback));
     }    
     // Dynamic ItemsControl items use their unique model ID
     [RelayCommand]
@@ -66,6 +78,6 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void SelectPrt(StackPrt prt)
     {
-        Workspace.OpenOrFocusPane($"prt:{prt.Id}", prt.Name, prt);
+        Workspace.OpenOrFocusPane($"prt:{prt.Id}", prt.Name, new PrtEditorViewModel(prt));
     }
 }

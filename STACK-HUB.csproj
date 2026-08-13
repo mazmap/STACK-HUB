@@ -24,4 +24,10 @@
         </PackageReference>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2"/>
     </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Views\PrtEditorView.axaml.cs">
+        <DependentUpon>PrtEditorView.axaml</DependentUpon>
+      </Compile>
+    </ItemGroup>
 </Project>

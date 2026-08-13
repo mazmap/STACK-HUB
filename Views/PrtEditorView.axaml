@@ -1,0 +1,275 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:STACK_HUB.Models"
+             xmlns:vm="clr-namespace:STACK_HUB.ViewModels"
+             x:Class="STACK_HUB.Views.PrtEditorView"
+             x:DataType="vm:PrtEditorViewModel"
+             Background="#1E1E1E">
+
+    <Grid ColumnDefinitions="*, Auto, 360">
+        
+        <!-- ============================================================ -->
+        <!-- LEFT/MAIN PANE: 2D INTERACTIVE NODE GRAPH CANVAS             -->
+        <!-- ============================================================ -->
+        <Grid Grid.Column="0" RowDefinitions="Auto, *">
+            
+            <!-- Header Toolbar -->
+            <Border Grid.Row="0" Background="#252526" BorderBrush="#333333" BorderThickness="0,0,0,1" Padding="16,10">
+                <Grid ColumnDefinitions="Auto, *, Auto">
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                        <TextBlock Text="PRT Graph:" Foreground="#808080" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        <TextBox Text="{Binding Prt.Name}" Width="120" FontSize="13" Padding="6,4"/>
+                        
+                        <TextBlock Text="Value:" Foreground="#808080" FontWeight="SemiBold" VerticalAlignment="Center" Margin="8,0,0,0"/>
+                        <NumericUpDown Value="{Binding Prt.Value}" Increment="0.5" Minimum="0" Width="100" Padding="4,2"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2" 
+                            Content="+ Add Node" 
+                            Command="{Binding AddNodeCommand}"
+                            Background="#007ACC" 
+                            Foreground="White" 
+                            FontWeight="SemiBold"
+                            Padding="12,6" 
+                            CornerRadius="3" />
+                </Grid>
+            </Border>
+
+            <!-- 2D Interactive Graph Scroll Area -->
+            <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Background="#18181A">
+                
+                <Canvas Width="2000" Height="1500" Background="#18181A">
+                    
+                    <!-- 1. BEZIER CONNECTING WIRES LAYER -->
+                    <ItemsControl ItemsSource="{Binding GraphWires}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas Width="2000" Height="1500" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:PrtGraphWireViewModel">
+                                <Canvas>
+                                    <!-- Bezier Curve Path -->
+                                    <Path Data="{Binding PathData}" 
+                                          Stroke="{Binding StrokeBrush}" 
+                                          StrokeThickness="2.5" />
+
+                                    <!-- Wire Label Badge -->
+                                    <Border Canvas.Left="{Binding LabelPosition.X}" 
+                                            Canvas.Top="{Binding LabelPosition.Y}" 
+                                            Background="#1E1E1E" 
+                                            BorderBrush="{Binding StrokeBrush}" 
+                                            BorderThickness="1" 
+                                            CornerRadius="3" 
+                                            Padding="4,1">
+                                        <TextBlock Text="{Binding Label}" 
+                                                   Foreground="{Binding StrokeBrush}" 
+                                                   FontSize="10" 
+                                                   FontWeight="Bold" />
+                                    </Border>
+                                </Canvas>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- 2. 2D NODE CARDS LAYER -->
+                    <ItemsControl ItemsSource="{Binding GraphNodes}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <Canvas Width="2000" Height="1500" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="vm:PrtGraphNodeViewModel">
+                                <Canvas>
+                                    <!-- Draggable Node Card -->
+                                    <Border Canvas.Left="{Binding X}" 
+                                            Canvas.Top="{Binding Y}" 
+                                            Width="220" 
+                                            Padding="12,10" 
+                                            Background="#2D2D30" 
+                                            BorderBrush="#007ACC" 
+                                            BorderThickness="1.5" 
+                                            CornerRadius="6"
+                                            PointerPressed="OnNodeCardPointerPressed"
+                                            PointerMoved="OnNodeCardPointerMoved"
+                                            PointerReleased="OnNodeCardPointerReleased">
+                                        
+                                        <Grid RowDefinitions="Auto, Auto, Auto">
+                                            
+                                            <!-- Top Input Port Dot -->
+                                            <Ellipse Width="10" Height="10" Fill="#007ACC" HorizontalAlignment="Center" Margin="0,-15,0,6"/>
+
+                                            <!-- Card Header -->
+                                            <Grid Grid.Row="0" ColumnDefinitions="*, Auto">
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="6">
+                                                    <TextBlock Text="⚡" Foreground="#007ACC" FontSize="13" />
+                                                    <TextBlock Text="{Binding Node.Name}" FontWeight="Bold" FontSize="13" Foreground="#FFFFFF" />
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- Maxima Check Expression Pill -->
+                                            <Border Grid.Row="1" Margin="0,8,0,8" Padding="8,4" Background="#1E1E1E" BorderBrush="#404040" BorderThickness="1" CornerRadius="3">
+                                                <TextBlock Text="{Binding Node.MaximaCheck}" FontFamily="Iosevka, Cascadia Code, Consolas, monospace" FontSize="11" Foreground="#569CD6" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+                                            </Border>
+
+                                            <!-- Bottom Output Ports -->
+                                            <Grid Grid.Row="2" ColumnDefinitions="*, *">
+                                                <!-- True Output Port (Green) -->
+                                                <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Left">
+                                                    <Ellipse Width="9" Height="9" Fill="#4EC9B0" />
+                                                    <TextBlock Text="True" Foreground="#4EC9B0" FontSize="10" FontWeight="Bold" />
+                                                </StackPanel>
+
+                                                <!-- False Output Port (Red) -->
+                                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right">
+                                                    <TextBlock Text="False" Foreground="#F92672" FontSize="10" FontWeight="Bold" />
+                                                    <Ellipse Width="9" Height="9" Fill="#F92672" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Grid>
+                                    </Border>
+                                </Canvas>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                </Canvas>
+            </ScrollViewer>
+        </Grid>
+
+        <GridSplitter Grid.Column="1" Width="4" Background="#252526" ResizeDirection="Columns" />
+
+        <!-- ============================================================ -->
+        <!-- RIGHT PANE: SIDE INSPECTOR PANE (Node Options Editor)         -->
+        <!-- ============================================================ -->
+        <Border Grid.Column="2" 
+                Background="#252526" 
+                BorderBrush="#333333" 
+                BorderThickness="1,0,0,0"
+                IsVisible="{Binding SelectedNode, Converter={x:Static ObjectConverters.IsNotNull}}">
+            
+            <Grid RowDefinitions="Auto, *">
+                
+                <!-- Inspector Header -->
+                <Border Grid.Row="0" Background="#2D2D30" BorderBrush="#333333" BorderThickness="0,0,0,1" Padding="14,12">
+                    <Grid ColumnDefinitions="*, Auto">
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Node Inspector" FontSize="11" Foreground="#007ACC" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding SelectedNode.Name}" FontSize="15" FontWeight="Bold" Foreground="#FFFFFF"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="1" 
+                                Content="Delete" 
+                                Command="{Binding RemoveNodeCommand}"
+                                CommandParameter="{Binding SelectedNode}"
+                                Background="#3B1C1C" 
+                                Foreground="#FF6B6B" 
+                                Padding="8,4" 
+                                FontSize="11" 
+                                CornerRadius="3"/>
+                    </Grid>
+                </Border>
+
+                <!-- Inspector Form Controls -->
+                <ScrollViewer Grid.Row="1" Padding="14">
+                    <StackPanel Spacing="14">
+                        
+                        <!-- 1. Node Name / Description -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Node Description / Name" Foreground="#CCCCCC" FontSize="12" FontWeight="SemiBold"/>
+                            <TextBox Text="{Binding SelectedNode.Name, Mode=TwoWay}" Padding="6,5"/>
+                        </StackPanel>
+
+                        <!-- 2. Answer Test Selection -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Answer Test (Maxima Evaluation)" Foreground="#CCCCCC" FontSize="12" FontWeight="SemiBold"/>
+                            <ComboBox ItemsSource="{Binding AvailableAnswerTests}" 
+                                      SelectedItem="{Binding SelectedNode.AnswerTest, Mode=TwoWay}" 
+                                      HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+
+                        <!-- 3. Student Answer -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Student Answer (SAns)" Foreground="#CCCCCC" FontSize="12" FontWeight="SemiBold"/>
+                            <TextBox Text="{Binding SelectedNode.StudentAnswer, Mode=TwoWay}" 
+                                     FontFamily="Iosevka, Cascadia Code, Consolas, monospace" 
+                                     Padding="6,5"/>
+                        </StackPanel>
+
+                        <!-- 4. Teacher Answer -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Teacher / Model Answer (TAns)" Foreground="#CCCCCC" FontSize="12" FontWeight="SemiBold"/>
+                            <TextBox Text="{Binding SelectedNode.TeacherAnswer, Mode=TwoWay}" 
+                                     FontFamily="Iosevka, Cascadia Code, Consolas, monospace" 
+                                     Padding="6,5"/>
+                        </StackPanel>
+
+                        <!-- 5. Test Options -->
+                        <StackPanel Spacing="4">
+                            <TextBlock Text="Test Options" Foreground="#808080" FontSize="12"/>
+                            <TextBox Text="{Binding SelectedNode.TestOptions, Mode=TwoWay}" Padding="6,5"/>
+                        </StackPanel>
+
+                        <!-- 6. Quiet Mode -->
+                        <CheckBox IsChecked="{Binding SelectedNode.Quiet, Mode=TwoWay}" Content="Quiet (Suppress Test Feedback)"/>
+
+                        <Separator Background="#333333" Margin="0,4"/>
+
+                        <!-- 7. True Branch Options -->
+                        <Border Background="#1E1E1E" BorderBrush="#276A48" BorderThickness="1" CornerRadius="4" Padding="10">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="TRUE BRANCH (Test Evaluates True)" Foreground="#4EC9B0" FontSize="12" FontWeight="Bold"/>
+                                
+                                <Grid ColumnDefinitions="*, *">
+                                    <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,4,0">
+                                        <TextBlock Text="Next Node" Foreground="#CCCCCC" FontSize="11"/>
+                                        <TextBox Text="{Binding SelectedNode.NextNodeTrue, Mode=TwoWay}" PlaceholderText="-1 = Stop"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Spacing="4" Margin="4,0,0,0">
+                                        <TextBlock Text="Score" Foreground="#CCCCCC" FontSize="11"/>
+                                        <NumericUpDown Value="{Binding SelectedNode.NodeScore, Mode=TwoWay}" Increment="0.1" Minimum="0" Maximum="1"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="True Feedback" Foreground="#CCCCCC" FontSize="11"/>
+                                    <TextBox Text="{Binding SelectedNode.TrueFeedback, Mode=TwoWay}" AcceptsReturn="True" Height="60" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- 8. False Branch Options -->
+                        <Border Background="#1E1E1E" BorderBrush="#6A2727" BorderThickness="1" CornerRadius="4" Padding="10">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="FALSE BRANCH (Test Evaluates False)" Foreground="#F92672" FontSize="12" FontWeight="Bold"/>
+                                
+                                <Grid ColumnDefinitions="*, *">
+                                    <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,4,0">
+                                        <TextBlock Text="Next Node" Foreground="#CCCCCC" FontSize="11"/>
+                                        <TextBox Text="{Binding SelectedNode.NextNodeFalse, Mode=TwoWay}" PlaceholderText="-1 = Stop"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Spacing="4" Margin="4,0,0,0">
+                                        <TextBlock Text="Penalty" Foreground="#CCCCCC" FontSize="11"/>
+                                        <NumericUpDown Value="{Binding SelectedNode.Penalty, Mode=TwoWay}" Increment="0.05" Minimum="0" Maximum="1"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="False Feedback" Foreground="#CCCCCC" FontSize="11"/>
+                                    <TextBox Text="{Binding SelectedNode.FalseFeedback, Mode=TwoWay}" AcceptsReturn="True" Height="60" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

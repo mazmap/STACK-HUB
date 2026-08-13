@@ -65,7 +65,10 @@
                 <ItemsControl ItemsSource="{Binding ActiveQuestion.Inputs}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="models:StackInput">
-                      <Button Content="{Binding Name}" Classes="tree-item"  CommandParameter="{Binding Id}"/>
+                      <Button Content="{Binding Name}" 
+                              Classes="tree-item"  
+                              Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).SelectInputCommand}"
+                              CommandParameter="{Binding}"/>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
@@ -74,8 +77,8 @@
               <!-- Category 4: Feedback options -->
               <StackPanel>
                 <TextBlock Text="Feedback" Classes="sidebar-header"/>
-                <Button Content="Specific Feedback" Classes="tree-item"  CommandParameter="specific_feedback"/>
-                <Button Content="General Feedback" Classes="tree-item"  CommandParameter="general_feedback"/>
+                <Button Content="Specific Feedback" Classes="tree-item" Command="{Binding OpenSpecificFeedbackCommand}"/>
+                <Button Content="General Feedback" Classes="tree-item" Command="{Binding OpenGeneralFeedbackCommand}"/>
               </StackPanel>
 
               <!-- Category 5: Grading list -->
@@ -84,7 +87,10 @@
                 <ItemsControl ItemsSource="{Binding ActiveQuestion.Prts}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="models:StackPrt">
-                      <Button Content="{Binding Name}" Classes="tree-item"  CommandParameter="{Binding Id}"/>
+                      <Button Content="{Binding Name}" 
+                              Classes="tree-item"  
+                              Command="{Binding $parent[Window].((vm:MainViewModel)DataContext).SelectPrtCommand}"
+                              CommandParameter="{Binding}"/>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>

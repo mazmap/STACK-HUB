@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace STACK_HUB.Models;
 
@@ -50,26 +51,65 @@ public class StackInput
     public string ExtraOptions { get; set; } = "";
 }
 
-public class StackPrt
+public partial class StackPrt : ObservableObject
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
-    public string Name { get; set; } = "prt1";
-    public double Value { get; set; } = 1.0;
-    public string FeedbackStyle { get; set; } = "Standard"; // Standard, Compact, None
+
+    [ObservableProperty]
+    private string _name = "prt1";
+
+    [ObservableProperty]
+    private double _value = 1.0;
+
+    [ObservableProperty]
+    private string _feedbackStyle = "Standard"; // Standard, Compact, None
+
     public ObservableCollection<StackPrtNode> Nodes { get; set; } = new();
 }
 
-public class StackPrtNode
+public partial class StackPrtNode : ObservableObject
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
-    public string Name { get; set; } = "Node 1";
-    public string AnswerTest { get; set; } = "AlgEquiv";
-    public string StudentAnswer { get; set; } = "ans1";
-    public string TeacherAnswer { get; set; } = "model_ans";
-    public double NodeScore { get; set; } = 1.0;
-    public double Penalty { get; set; } = 0.1;
-    public string NextNodeTrue { get; set; } = "-1"; // "-1" for Stop, otherwise Node number
-    public string NextNodeFalse { get; set; } = "-1";
-    public string TrueFeedback { get; set; } = "";
-    public string FalseFeedback { get; set; } = "";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MaximaCheck))]
+    private string _name = "Node 1";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MaximaCheck))]
+    private string _answerTest = "AlgEquiv";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MaximaCheck))]
+    private string _studentAnswer = "ans1";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MaximaCheck))]
+    private string _teacherAnswer = "model_ans";
+
+    [ObservableProperty]
+    private string _testOptions = "";
+
+    [ObservableProperty]
+    private bool _quiet;
+
+    [ObservableProperty]
+    private double _nodeScore = 1.0;
+
+    [ObservableProperty]
+    private double _penalty = 0.1;
+
+    [ObservableProperty]
+    private string _nextNodeTrue = "-1"; // "-1" for Stop, otherwise Node number
+
+    [ObservableProperty]
+    private string _nextNodeFalse = "-1";
+
+    [ObservableProperty]
+    private string _trueFeedback = "";
+
+    [ObservableProperty]
+    private string _falseFeedback = "";
+
+    public string MaximaCheck => $"{AnswerTest}({StudentAnswer}, {TeacherAnswer})";
 }
