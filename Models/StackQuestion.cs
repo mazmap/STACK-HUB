@@ -64,6 +64,9 @@ public partial class StackPrt : ObservableObject
     [ObservableProperty]
     private string _feedbackStyle = "Standard"; // Standard, Compact, None
 
+    [ObservableProperty]
+    private string _feedbackVariables = "/*\nans1 = list of the CAS values assigned to the selected options\nmcq_correct(tans) = list of the CAS values assigned to the correct (true) options\nmcq_incorrect(tans) = list of the CAS values assigned to the incorrect (false) options\n*/\n\nnumOptions: length(tans);\n\ncorrectOptionValues: mcq_correct(tans);\nincorrectOptionValues: mcq_incorrect(tans);"; 
+    
     public ObservableCollection<StackPrtNode> Nodes { get; set; } = new();
 }
 
@@ -73,7 +76,7 @@ public partial class StackPrtNode : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MaximaCheck))]
-    private string _name = "Node 1";
+    private string _name = "Antwort korrekt?";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MaximaCheck))]
@@ -81,35 +84,69 @@ public partial class StackPrtNode : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MaximaCheck))]
-    private string _studentAnswer = "ans1";
+    private string _studentAnswer = "sans1";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MaximaCheck))]
-    private string _teacherAnswer = "model_ans";
+    private string _teacherAnswer = "tans1";
 
     [ObservableProperty]
-    private string _testOptions = "";
+    private string _testOptions = "AlgEquiv";
 
     [ObservableProperty]
     private bool _quiet;
 
     [ObservableProperty]
+    private string _scoreModeTrue = "Set to / Add / Subtract";
+
+    [ObservableProperty]
     private double _nodeScore = 1.0;
+
+    [ObservableProperty]
+    private string _scoreModeFalse = "Set to / Add / Subtract";
 
     [ObservableProperty]
     private double _penalty = 0.1;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayNextNodeTrue))]
     private string _nextNodeTrue = "-1"; // "-1" for Stop, otherwise Node number
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayNextNodeFalse))]
     private string _nextNodeFalse = "-1";
 
-    [ObservableProperty]
-    private string _trueFeedback = "";
+    public string DisplayNextNodeTrue
+    {
+        get => NextNodeTrue == "-1" ? "Keine" : NextNodeTrue;
+        set
+        {
+            var val = value == "Keine" ? "-1" : value;
+            if (NextNodeTrue != val)
+            {
+                NextNodeTrue = val ?? "-1";
+            }
+        }
+    }
+
+    public string DisplayNextNodeFalse
+    {
+        get => NextNodeFalse == "-1" ? "Keine" : NextNodeFalse;
+        set
+        {
+            var val = value == "Keine" ? "-1" : value;
+            if (NextNodeFalse != val)
+            {
+                NextNodeFalse = val ?? "-1";
+            }
+        }
+    }
 
     [ObservableProperty]
-    private string _falseFeedback = "";
+    private string _trueFeedback = "<p>Prima, das ist richtig!</p>";
 
-    public string MaximaCheck => $"{AnswerTest}({StudentAnswer}, {TeacherAnswer})";
+    [ObservableProperty]
+    private string _falseFeedback = "<p>Prima, das ist richtig!</p>";
+
+    public string MaximaCheck => $"{AnswerTest}({StudentAnswer},{TeacherAnswer})";
 }

@@ -13,21 +13,33 @@ public partial class PrtGraphWireViewModel : ObservableObject
     private IBrush _strokeBrush = Brushes.Green;
 
     [ObservableProperty]
-    private string _label = "";
+    private string _branchName = "";
 
     [ObservableProperty]
-    private Point _labelPosition;
+    private string _scoreText = "";
 
-    public PrtGraphWireViewModel(Point start, Point end, IBrush strokeBrush, string label = "")
+    [ObservableProperty]
+    private Point _branchNamePosition;
+
+    [ObservableProperty]
+    private Point _scorePosition;
+
+    [ObservableProperty]
+    private string _sourceNodeId = "";
+
+    [ObservableProperty]
+    private string _branchType = "";
+
+    public PrtGraphWireViewModel(Point start, Point end, IBrush strokeBrush, string branchName = "", string scoreText = "")
     {
         _strokeBrush = strokeBrush;
-        _label = label;
+        _branchName = branchName;
+        _scoreText = scoreText;
         UpdatePath(start, end);
     }
 
     public void UpdatePath(Point start, Point end)
     {
-        // Smooth vertical Bezier Curve formula
         double controlDist = System.Math.Max(50, System.Math.Abs(end.Y - start.Y) / 2);
         Point control1 = new Point(start.X, start.Y + controlDist);
         Point control2 = new Point(end.X, end.Y - controlDist);
@@ -39,6 +51,10 @@ public partial class PrtGraphWireViewModel : ObservableObject
             control2.X, control2.Y,
             end.X, end.Y);
 
-        LabelPosition = new Point((start.X + end.X) / 2, (start.Y + end.Y) / 2);
+        // BranchName label near port start (20% along curve)
+        BranchNamePosition = new Point(start.X + (end.X - start.X) * 0.15, start.Y + 15);
+
+        // ScoreText label along middle of curve (50% along curve)
+        ScorePosition = new Point((start.X + end.X) / 2 - 14, (start.Y + end.Y) / 2 - 10);
     }
 }
