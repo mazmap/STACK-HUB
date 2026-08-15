@@ -38,6 +38,8 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
     [ObservableProperty]
     private bool _isFeedbackVariablesExpanded;
 
+    public bool HasInitiallyCentered { get; set; }
+
     public ObservableCollection<StackPrtNode> Nodes => Prt.Nodes;
     public ObservableCollection<PrtGraphNodeViewModel> GraphNodes { get; } = new();
     public ObservableCollection<PrtGraphWireViewModel> GraphWires { get; } = new();

@@ -247,26 +247,28 @@ public partial class StackPrtNode : ObservableObject
 
     public string DisplayNextNodeTrue
     {
-        get => NextNodeTrue == "-1" ? "Keine" : NextNodeTrue;
+        get => string.IsNullOrEmpty(NextNodeTrue) || NextNodeTrue == "-1" ? "Keine" : NextNodeTrue;
         set
         {
+            if (value == null) return; // Prevent ComboBox unload/detachment from wiping the connection!
             var val = value == "Keine" ? "-1" : value;
             if (NextNodeTrue != val)
             {
-                NextNodeTrue = val ?? "-1";
+                NextNodeTrue = val;
             }
         }
     }
 
     public string DisplayNextNodeFalse
     {
-        get => NextNodeFalse == "-1" ? "Keine" : NextNodeFalse;
+        get => string.IsNullOrEmpty(NextNodeFalse) || NextNodeFalse == "-1" ? "Keine" : NextNodeFalse;
         set
         {
+            if (value == null) return; // Prevent ComboBox unload/detachment from wiping the connection!
             var val = value == "Keine" ? "-1" : value;
             if (NextNodeFalse != val)
             {
-                NextNodeFalse = val ?? "-1";
+                NextNodeFalse = val;
             }
         }
     }

@@ -32,31 +32,17 @@ public partial class PrtEditorView : UserControl
     private Point _resizeStartPoint;
     private double _initialPaneSize;
 
-    private bool _hasInitiallyCentered;
-
     public PrtEditorView()
     {
         InitializeComponent();
-        Loaded += OnViewLoaded;
-    }
-
-    private void OnViewLoaded(object? sender, RoutedEventArgs e)
-    {
-        if (DataContext is PrtEditorViewModel vm && ViewportBorder.Bounds.Width > 0 && ViewportBorder.Bounds.Height > 0)
-        {
-            vm.CenterView(ViewportBorder.Bounds.Size);
-        }
     }
 
     private void OnViewportSizeChanged(object? sender, SizeChangedEventArgs e)
     {
-        if (!_hasInitiallyCentered && e.NewSize.Width > 0 && e.NewSize.Height > 0)
+        if (DataContext is PrtEditorViewModel vm && !vm.HasInitiallyCentered && e.NewSize.Width > 0 && e.NewSize.Height > 0)
         {
-            _hasInitiallyCentered = true;
-            if (DataContext is PrtEditorViewModel vm)
-            {
-                vm.CenterView(e.NewSize);
-            }
+            vm.HasInitiallyCentered = true;
+            vm.CenterView(e.NewSize);
         }
     }
 
