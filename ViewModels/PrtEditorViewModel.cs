@@ -51,8 +51,32 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 
     public static List<string> AvailableScoreModes { get; } = new()
     {
-        "Set to / Add / Subtract", "Set to", "Add", "Subtract"
+        "Set to", "Add", "Subtract"
     };
+
+    public static string FormatBranchScore(double score, string? scoreMode)
+    {
+        string numStr = Math.Abs(score).ToString(CultureInfo.InvariantCulture);
+        if (string.IsNullOrWhiteSpace(scoreMode))
+        {
+            return score >= 0 ? $"+{numStr}" : $"-{numStr}";
+        }
+
+        if (scoreMode.Equals("Add", StringComparison.OrdinalIgnoreCase) || scoreMode.Contains("+"))
+        {
+            return score < 0 ? $"-{numStr}" : $"+{numStr}";
+        }
+        else if (scoreMode.Equals("Subtract", StringComparison.OrdinalIgnoreCase) || scoreMode.Contains("-"))
+        {
+            return $"-{numStr}";
+        }
+        else if (scoreMode.Equals("Set to", StringComparison.OrdinalIgnoreCase) || scoreMode.Contains("=") || scoreMode.StartsWith("Set", StringComparison.OrdinalIgnoreCase))
+        {
+            return score < 0 ? $"=-{numStr}" : $"={numStr}";
+        }
+
+        return score >= 0 ? $"+{numStr}" : $"-{numStr}";
+    }
 
     private static readonly IBrush TrueBrush = SolidColorBrush.Parse("#4EC9B0");
     private static readonly IBrush FalseBrush = SolidColorBrush.Parse("#F92672");
@@ -133,6 +157,19 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
             }
             SelectedGraphNodes.Clear();
         }
+        else
+        {
+            SelectedGraphNodes.Clear();
+            foreach (var node in GraphNodes)
+            {
+                bool isSel = (node.Node.Id == value.Id);
+                node.IsSelected = isSel;
+                if (isSel)
+                {
+                    SelectedGraphNodes.Add(node);
+                }
+            }
+        }
     }
 
     private void OnNodesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -158,6 +195,12 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
             e.PropertyName == nameof(StackPrtNode.AnswerTest) ||
             e.PropertyName == nameof(StackPrtNode.StudentAnswer) ||
             e.PropertyName == nameof(StackPrtNode.TeacherAnswer) ||
+            e.PropertyName == nameof(StackPrtNode.ScoreModeTrue) ||
+            e.PropertyName == nameof(StackPrtNode.ScoreModeFalse) ||
+            e.PropertyName == nameof(StackPrtNode.ScoreTrue) ||
+            e.PropertyName == nameof(StackPrtNode.PenaltyTrue) ||
+            e.PropertyName == nameof(StackPrtNode.ScoreFalse) ||
+            e.PropertyName == nameof(StackPrtNode.PenaltyFalse) ||
             e.PropertyName == nameof(StackPrtNode.NodeScore) ||
             e.PropertyName == nameof(StackPrtNode.Penalty))
         {
@@ -255,6 +298,7 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
             }
         }
 
+        SelectedGraphNodes.Clear();
         foreach (var node in Prt.Nodes)
         {
             double posX = startX;
@@ -271,11 +315,16 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
                 posY = layoutPos.Y;
             }
 
+            bool isSel = (SelectedNode != null && node.Id == SelectedNode.Id);
             var gNode = new PrtGraphNodeViewModel(node, posX, posY)
             {
-                IsSelected = (SelectedNode != null && node.Id == SelectedNode.Id)
+                IsSelected = isSel
             };
             GraphNodes.Add(gNode);
+            if (isSel)
+            {
+                SelectedGraphNodes.Add(gNode);
+            }
         }
 
             UpdateWires();
@@ -293,8 +342,8 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 
         foreach (var gNode in GraphNodes)
         {
-            string trueScore = gNode.Node.NodeScore >= 0 ? $"+{gNode.Node.NodeScore.ToString(CultureInfo.InvariantCulture)}" : gNode.Node.NodeScore.ToString(CultureInfo.InvariantCulture);
-            string falseScore = gNode.Node.Penalty > 0 ? $"-{gNode.Node.Penalty.ToString(CultureInfo.InvariantCulture)}" : gNode.Node.Penalty.ToString(CultureInfo.InvariantCulture);
+            string trueScore = FormatBranchScore(gNode.Node.ScoreTrue, gNode.Node.ScoreModeTrue);
+            string falseScore = FormatBranchScore(gNode.Node.ScoreFalse, gNode.Node.ScoreModeFalse);
 
             var trueTarget = FindGraphNode(gNode.Node.NextNodeTrue, nodeMap);
             if (trueTarget != null)

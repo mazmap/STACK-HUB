@@ -104,9 +104,13 @@ public partial class PrtEditorView : UserControl
             {
                 bool isMultiSelect = e.KeyModifiers.HasFlag(KeyModifiers.Shift) || e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
 
-                if (!gNode.IsSelected || isMultiSelect)
+                if (isMultiSelect)
                 {
-                    vm.SelectNodeViewModel(gNode, isMultiSelect);
+                    vm.SelectNodeViewModel(gNode, isMultiSelect: true);
+                }
+                else if (!gNode.IsSelected || !vm.SelectedGraphNodes.Contains(gNode))
+                {
+                    vm.SelectNodeViewModel(gNode, isMultiSelect: false);
                 }
 
                 _draggedNode = gNode;
@@ -126,7 +130,9 @@ public partial class PrtEditorView : UserControl
             var delta = (currentPoint - _dragStartPoint) / vm.ZoomLevel;
             _dragStartPoint = currentPoint;
 
-            var nodesToMove = vm.SelectedGraphNodes.Any() ? vm.SelectedGraphNodes.ToList() : new List<PrtGraphNodeViewModel> { _draggedNode };
+            var nodesToMove = (vm.SelectedGraphNodes.Contains(_draggedNode) && vm.SelectedGraphNodes.Count > 1)
+                ? vm.SelectedGraphNodes.ToList()
+                : new List<PrtGraphNodeViewModel> { _draggedNode };
             foreach (var node in nodesToMove)
             {
                 node.X = Math.Clamp(node.X + delta.X, 10, 9770);
@@ -188,8 +194,8 @@ public partial class PrtEditorView : UserControl
 
             var brush = branchType == "True" ? SolidColorBrush.Parse("#4EC9B0") : SolidColorBrush.Parse("#F92672");
             string scoreText = branchType == "True"
-                ? (gNode.Node.NodeScore >= 0 ? $"+{gNode.Node.NodeScore.ToString(System.Globalization.CultureInfo.InvariantCulture)}" : gNode.Node.NodeScore.ToString(System.Globalization.CultureInfo.InvariantCulture))
-                : (gNode.Node.Penalty > 0 ? $"-{gNode.Node.Penalty.ToString(System.Globalization.CultureInfo.InvariantCulture)}" : gNode.Node.Penalty.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                ? PrtEditorViewModel.FormatBranchScore(gNode.Node.ScoreTrue, gNode.Node.ScoreModeTrue)
+                : PrtEditorViewModel.FormatBranchScore(gNode.Node.ScoreFalse, gNode.Node.ScoreModeFalse);
 
             _tempWire = new PrtGraphWireViewModel(startPort, currentPos, brush, branchType, scoreText)
             {

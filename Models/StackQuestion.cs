@@ -97,16 +97,36 @@ public partial class StackPrtNode : ObservableObject
     private bool _quiet;
 
     [ObservableProperty]
-    private string _scoreModeTrue = "Set to / Add / Subtract";
+    private string _scoreModeTrue = "Set to";
 
     [ObservableProperty]
-    private double _nodeScore = 1.0;
+    [NotifyPropertyChangedFor(nameof(NodeScore))]
+    private double _scoreTrue = 1.0;
 
     [ObservableProperty]
-    private string _scoreModeFalse = "Set to / Add / Subtract";
+    private double _penaltyTrue = 0.0;
 
     [ObservableProperty]
-    private double _penalty = 0.1;
+    private string _scoreModeFalse = "Set to";
+
+    [ObservableProperty]
+    private double _scoreFalse = 0.0;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Penalty))]
+    private double _penaltyFalse = 0.1;
+
+    public double NodeScore
+    {
+        get => ScoreTrue;
+        set => ScoreTrue = value;
+    }
+
+    public double Penalty
+    {
+        get => PenaltyFalse;
+        set => PenaltyFalse = value;
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayNextNodeTrue))]

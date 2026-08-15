@@ -350,12 +350,12 @@
                                     <Grid ColumnDefinitions="*, *">
                                         <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,4,0">
                                             <TextBlock Text="Score" Foreground="#AAAAAA" FontSize="11"/>
-                                            <NumericUpDown Value="{Binding SelectedNode.NodeScore, Mode=TwoWay}" Increment="0.5" Minimum="0"/>
+                                            <NumericUpDown Value="{Binding SelectedNode.ScoreTrue, Mode=TwoWay}" Increment="0.5" Minimum="0"/>
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="1" Spacing="4" Margin="4,0,0,0">
                                             <TextBlock Text="Abzüge" Foreground="#AAAAAA" FontSize="11"/>
-                                            <NumericUpDown Value="{Binding SelectedNode.Penalty, Mode=TwoWay}" Increment="0.1" Minimum="0"/>
+                                            <NumericUpDown Value="{Binding SelectedNode.PenaltyTrue, Mode=TwoWay}" Increment="0.1" Minimum="0"/>
                                         </StackPanel>
                                     </Grid>
 
@@ -381,12 +381,12 @@
                                     <Grid ColumnDefinitions="*, *">
                                         <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,4,0">
                                             <TextBlock Text="Score" Foreground="#AAAAAA" FontSize="11"/>
-                                            <NumericUpDown Value="{Binding SelectedNode.NodeScore, Mode=TwoWay}" Increment="0.5" Minimum="0"/>
+                                            <NumericUpDown Value="{Binding SelectedNode.ScoreFalse, Mode=TwoWay}" Increment="0.5" Minimum="0"/>
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="1" Spacing="4" Margin="4,0,0,0">
                                             <TextBlock Text="Abzüge" Foreground="#AAAAAA" FontSize="11"/>
-                                            <NumericUpDown Value="{Binding SelectedNode.Penalty, Mode=TwoWay}" Increment="0.1" Minimum="0"/>
+                                            <NumericUpDown Value="{Binding SelectedNode.PenaltyFalse, Mode=TwoWay}" Increment="0.1" Minimum="0"/>
                                         </StackPanel>
                                     </Grid>
 
