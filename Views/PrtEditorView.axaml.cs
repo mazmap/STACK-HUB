@@ -71,27 +71,6 @@ public partial class PrtEditorView : UserControl
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
-        if (DataContext is PrtEditorViewModel vm)
-        {
-            vm.PropertyChanged += (s, args) =>
-            {
-                if (args.PropertyName == nameof(PrtEditorViewModel.SelectedNode) ||
-                    args.PropertyName == nameof(PrtEditorViewModel.NodeEditorWidth))
-                {
-                    UpdateBottomPaneMargin();
-                }
-            };
-            UpdateBottomPaneMargin();
-        }
-    }
-
-    private void UpdateBottomPaneMargin()
-    {
-        if (DataContext is PrtEditorViewModel vm && BottomPaneBorder != null)
-        {
-            double rightMargin = vm.SelectedNode != null ? vm.NodeEditorWidth : 0;
-            BottomPaneBorder.Margin = new Thickness(0, 0, rightMargin, 0);
-        }
     }
 
     private void OnNodeCardSizeChanged(object? sender, SizeChangedEventArgs e)
@@ -100,10 +79,13 @@ public partial class PrtEditorView : UserControl
         {
             if (e.NewSize.Width > 0 && e.NewSize.Height > 0)
             {
-                gNode.Width = e.NewSize.Width;
-                gNode.Height = e.NewSize.Height;
-                gNode.NotifyPositionChanged();
-                vm.UpdateWires();
+                if (Math.Abs(gNode.Width - e.NewSize.Width) > 0.5 || Math.Abs(gNode.Height - e.NewSize.Height) > 0.5)
+                {
+                    gNode.Width = e.NewSize.Width;
+                    gNode.Height = e.NewSize.Height;
+                    gNode.NotifyPositionChanged();
+                    vm.UpdateWires();
+                }
             }
         }
     }
@@ -348,7 +330,6 @@ public partial class PrtEditorView : UserControl
             double deltaX = _resizeStartPoint.X - currentPos.X;
             double newWidth = Math.Clamp(_initialPaneSize + deltaX, 280, 600);
             vmRight.NodeEditorWidth = newWidth;
-            UpdateBottomPaneMargin();
         }
         else if (_isResizingBottomPane && DataContext is PrtEditorViewModel vmBottom)
         {

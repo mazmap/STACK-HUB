@@ -12,14 +12,34 @@
         <!-- ============================================================ -->
         <!-- LAYER 1: FULL CANVAS VIEWPORT BACKGROUND                    -->
         <!-- ============================================================ -->
-        <Border x:Name="ViewportBorder" 
+        <!-- 1. CANVAS VIEWPORT -->
+        <Border Grid.Row="0"
+                x:Name="ViewportBorder" 
                 ClipToBounds="True" 
-                Background="#18181A"
                 SizeChanged="OnViewportSizeChanged"
                 PointerPressed="OnViewportPointerPressed"
                 PointerMoved="OnViewportPointerMoved"
                 PointerReleased="OnViewportPointerReleased"
                 PointerWheelChanged="OnViewportPointerWheelChanged">
+            
+            <Border.Background>
+                <DrawingBrush TileMode="Tile" DestinationRect="0,0,24,24">
+                    <DrawingBrush.Drawing>
+                        <DrawingGroup>
+                            <GeometryDrawing Brush="#18181A">
+                                <GeometryDrawing.Geometry>
+                                    <RectangleGeometry Rect="0,0,24,24"/>
+                                </GeometryDrawing.Geometry>
+                            </GeometryDrawing>
+                            <GeometryDrawing Brush="#3A3C42">
+                                <GeometryDrawing.Geometry>
+                                    <EllipseGeometry Rect="11,11,2,2"/>
+                                </GeometryDrawing.Geometry>
+                            </GeometryDrawing>
+                        </DrawingGroup>
+                    </DrawingBrush.Drawing>
+                </DrawingBrush>
+            </Border.Background>
             
             <Border.ContextMenu>
                 <ContextMenu Background="#25262A" BorderBrush="#3D3E42" BorderThickness="1">
@@ -34,28 +54,10 @@
                     Width="10000" 
                     Height="10000" 
                     ClipToBounds="False"
+                    Background="Transparent"
                     HorizontalAlignment="Left" 
                     VerticalAlignment="Top" 
                     RenderTransformOrigin="0%,0%">
-                
-                <Canvas.Background>
-                    <DrawingBrush TileMode="Tile" DestinationRect="0,0,24,24">
-                        <DrawingBrush.Drawing>
-                            <DrawingGroup>
-                                <GeometryDrawing Brush="#18181A">
-                                    <GeometryDrawing.Geometry>
-                                        <RectangleGeometry Rect="0,0,24,24"/>
-                                    </GeometryDrawing.Geometry>
-                                </GeometryDrawing>
-                                <GeometryDrawing Brush="#3A3C42">
-                                    <GeometryDrawing.Geometry>
-                                        <EllipseGeometry Rect="11,11,2,2"/>
-                                    </GeometryDrawing.Geometry>
-                                </GeometryDrawing>
-                            </DrawingGroup>
-                        </DrawingBrush.Drawing>
-                    </DrawingBrush>
-                </Canvas.Background>
                 
                 <Canvas.RenderTransform>
                     <TransformGroup>
@@ -268,8 +270,8 @@
                         </Grid>
                     </Border>
 
-                    <!-- Maxima Editor bound to FeedbackVariablesEditor ViewModel -->
-                    <views:MaximaEditor Grid.Row="2" DataContext="{Binding FeedbackVariablesEditor}"/>
+                    <!-- Maxima Editor bound to FeedbackVariablesEditor ViewModel (pooled via ViewLocator) -->
+                    <ContentControl Grid.Row="2" Content="{Binding FeedbackVariablesEditor}"/>
                 </Grid>
             </Border>
         </Grid>
