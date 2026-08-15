@@ -187,24 +187,25 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 
     private void OnNodePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(StackPrtNode.NextNodeTrue) ||
-            e.PropertyName == nameof(StackPrtNode.NextNodeFalse) ||
-            e.PropertyName == nameof(StackPrtNode.DisplayNextNodeTrue) ||
-            e.PropertyName == nameof(StackPrtNode.DisplayNextNodeFalse) ||
-            e.PropertyName == nameof(StackPrtNode.Name) ||
-            e.PropertyName == nameof(StackPrtNode.AnswerTest) ||
-            e.PropertyName == nameof(StackPrtNode.StudentAnswer) ||
-            e.PropertyName == nameof(StackPrtNode.TeacherAnswer) ||
-            e.PropertyName == nameof(StackPrtNode.ScoreModeTrue) ||
-            e.PropertyName == nameof(StackPrtNode.ScoreModeFalse) ||
-            e.PropertyName == nameof(StackPrtNode.ScoreTrue) ||
-            e.PropertyName == nameof(StackPrtNode.PenaltyTrue) ||
-            e.PropertyName == nameof(StackPrtNode.ScoreFalse) ||
-            e.PropertyName == nameof(StackPrtNode.PenaltyFalse) ||
-            e.PropertyName == nameof(StackPrtNode.NodeScore) ||
-            e.PropertyName == nameof(StackPrtNode.Penalty))
+        if (e.PropertyName == nameof(StackPrtNode.Name))
         {
-            RebuildGraph();
+            UpdateAvailableNodeNames();
+            UpdateWires();
+        }
+        else if (e.PropertyName == nameof(StackPrtNode.NextNodeTrue) ||
+                 e.PropertyName == nameof(StackPrtNode.NextNodeFalse) ||
+                 e.PropertyName == nameof(StackPrtNode.DisplayNextNodeTrue) ||
+                 e.PropertyName == nameof(StackPrtNode.DisplayNextNodeFalse) ||
+                 e.PropertyName == nameof(StackPrtNode.ScoreModeTrue) ||
+                 e.PropertyName == nameof(StackPrtNode.ScoreModeFalse) ||
+                 e.PropertyName == nameof(StackPrtNode.ScoreTrue) ||
+                 e.PropertyName == nameof(StackPrtNode.PenaltyTrue) ||
+                 e.PropertyName == nameof(StackPrtNode.ScoreFalse) ||
+                 e.PropertyName == nameof(StackPrtNode.PenaltyFalse) ||
+                 e.PropertyName == nameof(StackPrtNode.NodeScore) ||
+                 e.PropertyName == nameof(StackPrtNode.Penalty))
+        {
+            UpdateWires();
         }
     }
 
@@ -260,42 +261,81 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 
         double startX = 5000;
         double startY = 5000;
-        double levelHeight = 180;
-        double colWidth = 280;
+        double levelHeight = 220;
+        double colWidth = 320;
 
-        var visited = new HashSet<string>();
         var positions = new Dictionary<string, (double X, double Y)>();
 
-        void LayoutNode(StackPrtNode node, int level, double xOffset)
+        // Layered DAG Layout:
+        var levels = new Dictionary<string, int>();
+        var desiredXMap = new Dictionary<string, double>();
+        var rootNode = Prt.Nodes.FirstOrDefault();
+        if (rootNode != null)
         {
-            if (visited.Contains(node.Id)) return;
-            visited.Add(node.Id);
-            positions[node.Id] = (xOffset, startY + level * levelHeight);
+            var queue = new Queue<StackPrtNode>();
+            levels[rootNode.Id] = 0;
+            desiredXMap[rootNode.Id] = startX;
+            queue.Enqueue(rootNode);
 
-            var trueTarget = FindNodeModel(node.NextNodeTrue);
-            if (trueTarget != null && !visited.Contains(trueTarget.Id))
+            while (queue.Count > 0)
             {
-                LayoutNode(trueTarget, level + 1, xOffset - colWidth / 2);
-            }
+                var current = queue.Dequeue();
+                int currentLevel = levels[current.Id];
+                double currentDesiredX = desiredXMap[current.Id];
 
-            var falseTarget = FindNodeModel(node.NextNodeFalse);
-            if (falseTarget != null && !visited.Contains(falseTarget.Id))
-            {
-                LayoutNode(falseTarget, level + 1, xOffset + colWidth / 2);
+                // WAHR (True) branch goes to the LEFT of parent (-colWidth / 2)
+                var trueTarget = FindNodeModel(current.NextNodeTrue);
+                if (trueTarget != null && (!levels.ContainsKey(trueTarget.Id) || levels[trueTarget.Id] < currentLevel + 1))
+                {
+                    levels[trueTarget.Id] = currentLevel + 1;
+                    desiredXMap[trueTarget.Id] = currentDesiredX - colWidth / 2.0;
+                    queue.Enqueue(trueTarget);
+                }
+
+                // FALSCH (False) branch goes to the RIGHT of parent (+colWidth / 2)
+                var falseTarget = FindNodeModel(current.NextNodeFalse);
+                if (falseTarget != null && (!levels.ContainsKey(falseTarget.Id) || levels[falseTarget.Id] < currentLevel + 1))
+                {
+                    levels[falseTarget.Id] = currentLevel + 1;
+                    desiredXMap[falseTarget.Id] = currentDesiredX + colWidth / 2.0;
+                    queue.Enqueue(falseTarget);
+                }
             }
         }
 
-        var rootNode = Prt.Nodes.FirstOrDefault();
-        if (rootNode != null) LayoutNode(rootNode, 0, startX);
+        var nodesByLevel = new Dictionary<int, List<StackPrtNode>>();
+        var unvisited = new List<StackPrtNode>();
 
-        int unvisitedCol = 0;
-        foreach (var unvisitedNode in Prt.Nodes)
+        foreach (var node in Prt.Nodes)
         {
-            if (!visited.Contains(unvisitedNode.Id))
+            if (levels.TryGetValue(node.Id, out int lvl))
             {
-                positions[unvisitedNode.Id] = (startX + (unvisitedCol + 1) * colWidth, startY);
-                unvisitedCol++;
+                if (!nodesByLevel.ContainsKey(lvl)) nodesByLevel[lvl] = new List<StackPrtNode>();
+                nodesByLevel[lvl].Add(node);
             }
+            else
+            {
+                unvisited.Add(node);
+            }
+        }
+
+        // On each level, sort nodes from Left to Right based on desiredX!
+        foreach (var kvp in nodesByLevel)
+        {
+            int lvl = kvp.Key;
+            var list = kvp.Value.OrderBy(n => desiredXMap.TryGetValue(n.Id, out var dx) ? dx : 0).ToList();
+            double totalWidth = (list.Count - 1) * colWidth;
+            double leftX = startX - totalWidth / 2.0;
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                positions[list[i].Id] = (leftX + i * colWidth, startY + lvl * levelHeight);
+            }
+        }
+
+        for (int i = 0; i < unvisited.Count; i++)
+        {
+            positions[unvisited[i].Id] = (startX + 600 + i * colWidth, startY);
         }
 
         SelectedGraphNodes.Clear();
@@ -313,6 +353,11 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
             {
                 posX = layoutPos.X;
                 posY = layoutPos.Y;
+                _userNodePositions[node.Id] = new Point(posX, posY);
+            }
+            else
+            {
+                _userNodePositions[node.Id] = new Point(posX, posY);
             }
 
             bool isSel = (SelectedNode != null && node.Id == SelectedNode.Id);
@@ -500,7 +545,7 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
         string targetValue = targetNode != null ? targetNode.Name : "-1";
         if (branchType == "True") sourceNode.NextNodeTrue = targetValue;
         else if (branchType == "False") sourceNode.NextNodeFalse = targetValue;
-        RebuildGraph();
+        UpdateWires();
     }
 
     [RelayCommand]
