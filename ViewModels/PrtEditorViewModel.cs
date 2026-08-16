@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -30,18 +31,47 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
     private double _panY = 100.0;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(FeedbackVariablesMargin))]
+    [NotifyPropertyChangedFor(nameof(NodeEditorColumnWidth))]
+    [NotifyPropertyChangedFor(nameof(NodeEditorColumnMinWidth))]
     private double _nodeEditorWidth = 340.0;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FeedbackVariablesRowHeight))]
+    [NotifyPropertyChangedFor(nameof(FeedbackVariablesRowMinHeight))]
     private double _feedbackVariablesHeight = 240.0;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FeedbackVariablesRowHeight))]
+    [NotifyPropertyChangedFor(nameof(FeedbackVariablesRowMinHeight))]
     private bool _isFeedbackVariablesExpanded;
 
-    public Thickness FeedbackVariablesMargin => SelectedNode != null
-        ? new Thickness(0, 0, NodeEditorWidth, 0)
-        : new Thickness(0, 0, 0, 0);
+    public GridLength NodeEditorColumnWidth
+    {
+        get => SelectedNode != null ? new GridLength(NodeEditorWidth, GridUnitType.Pixel) : new GridLength(0, GridUnitType.Pixel);
+        set
+        {
+            if (value.IsAbsolute && value.Value > 0)
+            {
+                NodeEditorWidth = value.Value;
+            }
+        }
+    }
+
+    public double NodeEditorColumnMinWidth => SelectedNode != null ? 260.0 : 0.0;
+
+    public GridLength FeedbackVariablesRowHeight
+    {
+        get => IsFeedbackVariablesExpanded ? new GridLength(FeedbackVariablesHeight, GridUnitType.Pixel) : new GridLength(0, GridUnitType.Pixel);
+        set
+        {
+            if (value.IsAbsolute && value.Value > 0)
+            {
+                FeedbackVariablesHeight = value.Value;
+            }
+        }
+    }
+
+    public double FeedbackVariablesRowMinHeight => IsFeedbackVariablesExpanded ? 120.0 : 0.0;
 
     public bool HasInitiallyCentered { get; set; }
 
@@ -348,7 +378,8 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
         PenaltyTrueValidationError = null;
         ScoreFalseValidationError = null;
         PenaltyFalseValidationError = null;
-        OnPropertyChanged(nameof(FeedbackVariablesMargin));
+        OnPropertyChanged(nameof(NodeEditorColumnWidth));
+        OnPropertyChanged(nameof(NodeEditorColumnMinWidth));
 
         EditingScoreTrue = value != null ? value.ScoreTrue.ToString("0.##", CultureInfo.InvariantCulture) : "1.0";
         EditingPenaltyTrue = value != null ? value.PenaltyTrue.ToString("0.##", CultureInfo.InvariantCulture) : "0.0";
@@ -772,22 +803,19 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
             return;
         }
 
-        double fullWidth = 800;
-        double fullHeight = 600;
+        double viewportWidth = 800;
+        double viewportHeight = 600;
 
         if (parameter is Size s && s.Width > 100 && s.Height > 100)
         {
-            fullWidth = s.Width;
-            fullHeight = s.Height;
+            viewportWidth = s.Width;
+            viewportHeight = s.Height;
         }
         else if (parameter is Rect r && r.Width > 100 && r.Height > 100)
         {
-            fullWidth = r.Width;
-            fullHeight = r.Height;
+            viewportWidth = r.Width;
+            viewportHeight = r.Height;
         }
-
-        double visibleWidth = SelectedNode != null ? Math.Max(200, fullWidth - NodeEditorWidth) : fullWidth;
-        double visibleHeight = IsFeedbackVariablesExpanded ? Math.Max(200, fullHeight - FeedbackVariablesHeight) : fullHeight;
 
         double minX = GraphNodes.Min(gn => gn.X);
         double maxX = GraphNodes.Max(gn => gn.X + gn.Width);
@@ -797,10 +825,10 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
         double treeCenterX = (minX + maxX) / 2.0;
         double treeCenterY = (minY + maxY) / 2.0;
 
-        PanX = (visibleWidth / 2.0) - (treeCenterX * ZoomLevel);
-        PanY = (visibleHeight / 2.0) - (treeCenterY * ZoomLevel);
+        PanX = (viewportWidth / 2.0) - (treeCenterX * ZoomLevel);
+        PanY = (viewportHeight / 2.0) - (treeCenterY * ZoomLevel);
 
-        ClampPan(fullWidth, fullHeight);
+        ClampPan(viewportWidth, viewportHeight);
     }
 
     public void ClampPan(double viewportWidth, double viewportHeight)
@@ -808,29 +836,26 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
         double scaledCanvasWidth = 10000 * ZoomLevel;
         double scaledCanvasHeight = 10000 * ZoomLevel;
 
-        double visibleWidth = SelectedNode != null ? Math.Max(200, viewportWidth - NodeEditorWidth) : viewportWidth;
-        double visibleHeight = IsFeedbackVariablesExpanded ? Math.Max(200, viewportHeight - FeedbackVariablesHeight) : viewportHeight;
-
-        if (scaledCanvasWidth > visibleWidth)
+        if (scaledCanvasWidth > viewportWidth)
         {
-            double minPanX = visibleWidth - scaledCanvasWidth;
+            double minPanX = viewportWidth - scaledCanvasWidth;
             double maxPanX = 0;
             PanX = Math.Clamp(PanX, minPanX, maxPanX);
         }
         else
         {
-            PanX = (visibleWidth - scaledCanvasWidth) / 2.0;
+            PanX = (viewportWidth - scaledCanvasWidth) / 2.0;
         }
 
-        if (scaledCanvasHeight > visibleHeight)
+        if (scaledCanvasHeight > viewportHeight)
         {
-            double minPanY = visibleHeight - scaledCanvasHeight;
+            double minPanY = viewportHeight - scaledCanvasHeight;
             double maxPanY = 0;
             PanY = Math.Clamp(PanY, minPanY, maxPanY);
         }
         else
         {
-            PanY = (visibleHeight - scaledCanvasHeight) / 2.0;
+            PanY = (viewportHeight - scaledCanvasHeight) / 2.0;
         }
     }
 

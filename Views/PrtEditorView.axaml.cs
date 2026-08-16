@@ -13,9 +13,9 @@ namespace STACK_HUB.Views;
 
 public partial class PrtEditorView : UserControl
 {
-    private Point _dragStartPoint;
+    private Point _nodeDragStartMouse;
+    private readonly Dictionary<PrtGraphNodeViewModel, Point> _dragInitialPositions = new();
     private bool _isDraggingNode;
-    private PrtGraphNodeViewModel? _draggedNode;
 
     private bool _isDraggingWire;
     private PrtGraphNodeViewModel? _wireSourceNode;
@@ -26,11 +26,6 @@ public partial class PrtEditorView : UserControl
     private Point _panStartPoint;
     private double _initialPanX;
     private double _initialPanY;
-
-    private bool _isResizingRightPane;
-    private bool _isResizingBottomPane;
-    private Point _resizeStartPoint;
-    private double _initialPaneSize;
 
     public PrtEditorView()
     {
@@ -88,20 +83,41 @@ public partial class PrtEditorView : UserControl
         {
             if (DataContext is PrtEditorViewModel vm)
             {
-                bool isMultiSelect = e.KeyModifiers.HasFlag(KeyModifiers.Shift) || e.KeyModifiers.HasFlag(KeyModifiers.Control) || e.KeyModifiers.HasFlag(KeyModifiers.Meta);
-
-                if (isMultiSelect)
+                bool isShift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
+                if (isShift)
                 {
-                    vm.SelectNodeViewModel(gNode, isMultiSelect: true);
+                    gNode.IsSelected = !gNode.IsSelected;
+                    if (gNode.IsSelected)
+                    {
+                        if (!vm.SelectedGraphNodes.Contains(gNode)) vm.SelectedGraphNodes.Add(gNode);
+                        vm.SelectedNode = gNode.Node;
+                    }
+                    else
+                    {
+                        vm.SelectedGraphNodes.Remove(gNode);
+                        vm.SelectedNode = vm.SelectedGraphNodes.LastOrDefault()?.Node;
+                    }
                 }
-                else if (!gNode.IsSelected || !vm.SelectedGraphNodes.Contains(gNode))
+                else
                 {
-                    vm.SelectNodeViewModel(gNode, isMultiSelect: false);
+                    if (!gNode.IsSelected)
+                    {
+                        foreach (var n in vm.GraphNodes) n.IsSelected = false;
+                        vm.SelectedGraphNodes.Clear();
+                        gNode.IsSelected = true;
+                        vm.SelectedGraphNodes.Add(gNode);
+                    }
+                    vm.SelectedNode = gNode.Node;
                 }
 
-                _draggedNode = gNode;
-                _dragStartPoint = e.GetPosition(ViewportBorder);
                 _isDraggingNode = true;
+                _nodeDragStartMouse = e.GetPosition(CanvasContainer);
+                _dragInitialPositions.Clear();
+                foreach (var sel in vm.SelectedGraphNodes)
+                {
+                    _dragInitialPositions[sel] = new Point(sel.X, sel.Y);
+                }
+
                 e.Pointer.Capture(control);
                 e.Handled = true;
             }
@@ -110,43 +126,35 @@ public partial class PrtEditorView : UserControl
 
     private void OnNodeCardPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (_isDraggingNode && _draggedNode != null && DataContext is PrtEditorViewModel vm)
+        if (_isDraggingNode && DataContext is PrtEditorViewModel vm)
         {
-            var currentPoint = e.GetPosition(ViewportBorder);
-            var delta = (currentPoint - _dragStartPoint) / vm.ZoomLevel;
-            _dragStartPoint = currentPoint;
+            Point currentMouse = e.GetPosition(CanvasContainer);
+            Vector delta = currentMouse - _nodeDragStartMouse;
 
-            var nodesToMove = (vm.SelectedGraphNodes.Contains(_draggedNode) && vm.SelectedGraphNodes.Count > 1)
-                ? vm.SelectedGraphNodes.ToList()
-                : new List<PrtGraphNodeViewModel> { _draggedNode };
-            foreach (var node in nodesToMove)
+            foreach (var sel in vm.SelectedGraphNodes)
             {
-                node.X = Math.Clamp(node.X + delta.X, 10, 9770);
-                node.Y = Math.Clamp(node.Y + delta.Y, 10, 9880);
-                node.NotifyPositionChanged();
-                vm.SaveNodePosition(node.Node.Id, node.X, node.Y);
+                if (_dragInitialPositions.TryGetValue(sel, out Point initPos))
+                {
+                    sel.X = Math.Max(0, initPos.X + delta.X);
+                    sel.Y = Math.Max(0, initPos.Y + delta.Y);
+                    sel.NotifyPositionChanged();
+                    vm.SaveNodePosition(sel.Node.NodeId, sel.X, sel.Y);
+                }
             }
-
             vm.UpdateWires();
             e.Handled = true;
-        }
-        else if (_isDraggingWire)
-        {
-            OnViewportPointerMoved(sender, e);
         }
     }
 
     private void OnNodeCardPointerReleased(object? sender, PointerReleasedEventArgs e)
     {
-        if (_isDraggingWire)
+        if (_isDraggingNode)
         {
-            OnViewportPointerReleased(sender, e);
-            return;
+            _isDraggingNode = false;
+            _dragInitialPositions.Clear();
+            e.Pointer.Capture(null);
+            e.Handled = true;
         }
-
-        _isDraggingNode = false;
-        _draggedNode = null;
-        e.Pointer.Capture(null);
     }
 
     private void OnTruePortPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -168,7 +176,6 @@ public partial class PrtEditorView : UserControl
             _wireSourceNode = gNode;
             _wireBranchType = branchType;
 
-            // Remove any existing static wire from this branch while dragging
             var existingWires = vm.GraphWires.Where(w => w.SourceNodeId == gNode.Node.Id && w.BranchType == branchType).ToList();
             foreach (var existing in existingWires)
             {
@@ -199,7 +206,7 @@ public partial class PrtEditorView : UserControl
 
     private void OnViewportPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (_isDraggingWire || _isDraggingNode || _isResizingRightPane || _isResizingBottomPane) return;
+        if (_isDraggingWire || _isDraggingNode) return;
 
         var point = e.GetCurrentPoint(ViewportBorder);
         if (point.Properties.IsRightButtonPressed && DataContext is PrtEditorViewModel vmRight)
@@ -211,7 +218,6 @@ public partial class PrtEditorView : UserControl
         }
         else if (point.Properties.IsMiddleButtonPressed || (point.Properties.IsLeftButtonPressed && e.KeyModifiers.HasFlag(KeyModifiers.Alt)))
         {
-            // Alt + Left Drag OR Middle Click Drag = Canvas Panning
             if (DataContext is PrtEditorViewModel vmPan)
             {
                 _isPanningCanvas = true;
@@ -224,7 +230,6 @@ public partial class PrtEditorView : UserControl
         }
         else if (point.Properties.IsLeftButtonPressed)
         {
-            // Default Left Drag on background = Marquee Box Selection
             if (DataContext is PrtEditorViewModel vmBox)
             {
                 bool isShiftPressed = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
@@ -279,22 +284,21 @@ public partial class PrtEditorView : UserControl
         else if (_isBoxSelecting && DataContext is PrtEditorViewModel vmBox)
         {
             Point currentPos = e.GetPosition(CanvasContainer);
-            double minX = Math.Min(_boxSelectStartPos.X, currentPos.X);
-            double minY = Math.Min(_boxSelectStartPos.Y, currentPos.Y);
+            double left = Math.Min(_boxSelectStartPos.X, currentPos.X);
+            double top = Math.Min(_boxSelectStartPos.Y, currentPos.Y);
             double width = Math.Abs(currentPos.X - _boxSelectStartPos.X);
             double height = Math.Abs(currentPos.Y - _boxSelectStartPos.Y);
 
-            Canvas.SetLeft(SelectionMarquee, minX);
-            Canvas.SetTop(SelectionMarquee, minY);
+            Canvas.SetLeft(SelectionMarquee, left);
+            Canvas.SetTop(SelectionMarquee, top);
             SelectionMarquee.Width = width;
             SelectionMarquee.Height = height;
 
-            Rect boxRect = new Rect(minX, minY, width, height);
-
+            var selRect = new Rect(left, top, width, height);
             foreach (var gNode in vmBox.GraphNodes)
             {
-                Rect nodeRect = new Rect(gNode.X, gNode.Y, gNode.Width, gNode.Height);
-                bool intersects = boxRect.Intersects(nodeRect);
+                var nodeRect = new Rect(gNode.X, gNode.Y, gNode.Width, gNode.Height);
+                bool intersects = selRect.Intersects(nodeRect);
                 if (intersects && !gNode.IsSelected)
                 {
                     gNode.IsSelected = true;
@@ -315,20 +319,6 @@ public partial class PrtEditorView : UserControl
             vm.PanX = _initialPanX + delta.X;
             vm.PanY = _initialPanY + delta.Y;
             vm.ClampPan(ViewportBorder.Bounds.Width, ViewportBorder.Bounds.Height);
-        }
-        else if (_isResizingRightPane && DataContext is PrtEditorViewModel vmRight)
-        {
-            Point currentPos = e.GetPosition(RootOverlayGrid);
-            double deltaX = _resizeStartPoint.X - currentPos.X;
-            double newWidth = Math.Clamp(_initialPaneSize + deltaX, 280, 600);
-            vmRight.NodeEditorWidth = newWidth;
-        }
-        else if (_isResizingBottomPane && DataContext is PrtEditorViewModel vmBottom)
-        {
-            Point currentPos = e.GetPosition(RootOverlayGrid);
-            double deltaY = _resizeStartPoint.Y - currentPos.Y;
-            double newHeight = Math.Clamp(_initialPaneSize + deltaY, 140, 500);
-            vmBottom.FeedbackVariablesHeight = newHeight;
         }
     }
 
@@ -359,7 +349,6 @@ public partial class PrtEditorView : UserControl
             double width = Math.Abs(endPos.X - _boxSelectStartPos.X);
             double height = Math.Abs(endPos.Y - _boxSelectStartPos.Y);
 
-            // Single click tap on empty background (< 4px drag) clears selection if Shift is not held
             if (width < 4.0 && height < 4.0 && !e.KeyModifiers.HasFlag(KeyModifiers.Shift))
             {
                 vmRel.ClearSelection();
@@ -372,12 +361,6 @@ public partial class PrtEditorView : UserControl
         else if (_isPanningCanvas)
         {
             _isPanningCanvas = false;
-            e.Pointer.Capture(null);
-        }
-        else if (_isResizingRightPane || _isResizingBottomPane)
-        {
-            _isResizingRightPane = false;
-            _isResizingBottomPane = false;
             e.Pointer.Capture(null);
         }
     }
@@ -401,49 +384,5 @@ public partial class PrtEditorView : UserControl
             }
             e.Handled = true;
         }
-    }
-
-    private void OnRightResizeHandlePointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (DataContext is PrtEditorViewModel vm)
-        {
-            _isResizingRightPane = true;
-            _resizeStartPoint = e.GetPosition(RootOverlayGrid);
-            _initialPaneSize = vm.NodeEditorWidth;
-            e.Pointer.Capture(sender as Control);
-            e.Handled = true;
-        }
-    }
-
-    private void OnRightResizeHandlePointerMoved(object? sender, PointerEventArgs e)
-    {
-        if (_isResizingRightPane) OnViewportPointerMoved(sender, e);
-    }
-
-    private void OnRightResizeHandlePointerReleased(object? sender, PointerReleasedEventArgs e)
-    {
-        if (_isResizingRightPane) OnViewportPointerReleased(sender, e);
-    }
-
-    private void OnBottomResizeHandlePointerPressed(object? sender, PointerPressedEventArgs e)
-    {
-        if (DataContext is PrtEditorViewModel vm)
-        {
-            _isResizingBottomPane = true;
-            _resizeStartPoint = e.GetPosition(RootOverlayGrid);
-            _initialPaneSize = vm.FeedbackVariablesHeight;
-            e.Pointer.Capture(sender as Control);
-            e.Handled = true;
-        }
-    }
-
-    private void OnBottomResizeHandlePointerMoved(object? sender, PointerEventArgs e)
-    {
-        if (_isResizingBottomPane) OnViewportPointerMoved(sender, e);
-    }
-
-    private void OnBottomResizeHandlePointerReleased(object? sender, PointerReleasedEventArgs e)
-    {
-        if (_isResizingBottomPane) OnViewportPointerReleased(sender, e);
     }
 }
