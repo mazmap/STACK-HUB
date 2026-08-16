@@ -86,28 +86,18 @@ public partial class PrtEditorView : UserControl
                 bool isShift = e.KeyModifiers.HasFlag(KeyModifiers.Shift);
                 if (isShift)
                 {
-                    gNode.IsSelected = !gNode.IsSelected;
-                    if (gNode.IsSelected)
-                    {
-                        if (!vm.SelectedGraphNodes.Contains(gNode)) vm.SelectedGraphNodes.Add(gNode);
-                        vm.SelectedNode = gNode.Node;
-                    }
-                    else
-                    {
-                        vm.SelectedGraphNodes.Remove(gNode);
-                        vm.SelectedNode = vm.SelectedGraphNodes.LastOrDefault()?.Node;
-                    }
+                    vm.SelectNodeViewModel(gNode, isMultiSelect: true);
                 }
                 else
                 {
                     if (!gNode.IsSelected)
                     {
-                        foreach (var n in vm.GraphNodes) n.IsSelected = false;
-                        vm.SelectedGraphNodes.Clear();
-                        gNode.IsSelected = true;
-                        vm.SelectedGraphNodes.Add(gNode);
+                        vm.SelectNodeViewModel(gNode, isMultiSelect: false);
                     }
-                    vm.SelectedNode = gNode.Node;
+                    else if (vm.SelectedGraphNodes.Count == 1)
+                    {
+                        vm.SelectedNode = gNode.Node;
+                    }
                 }
 
                 _isDraggingNode = true;
@@ -138,7 +128,7 @@ public partial class PrtEditorView : UserControl
                     sel.X = Math.Max(0, initPos.X + delta.X);
                     sel.Y = Math.Max(0, initPos.Y + delta.Y);
                     sel.NotifyPositionChanged();
-                    vm.SaveNodePosition(sel.Node.NodeId, sel.X, sel.Y);
+                    vm.SaveNodePosition(sel.Node.Id, sel.X, sel.Y);
                 }
             }
             vm.UpdateWires();
@@ -310,7 +300,15 @@ public partial class PrtEditorView : UserControl
                     vmBox.SelectedGraphNodes.Remove(gNode);
                 }
             }
-            vmBox.SelectedNode = null;
+
+            if (vmBox.SelectedGraphNodes.Count == 1)
+            {
+                vmBox.SelectedNode = vmBox.SelectedGraphNodes[0].Node;
+            }
+            else
+            {
+                vmBox.SelectedNode = null;
+            }
         }
         else if (_isPanningCanvas && DataContext is PrtEditorViewModel vm)
         {

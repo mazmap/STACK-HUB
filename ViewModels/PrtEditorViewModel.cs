@@ -245,7 +245,15 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
             {
                 SelectedGraphNodes.Remove(gNode);
             }
-            SelectedNode = null;
+
+            if (SelectedGraphNodes.Count == 1)
+            {
+                SelectedNode = SelectedGraphNodes[0].Node;
+            }
+            else
+            {
+                SelectedNode = null;
+            }
         }
     }
 
@@ -290,7 +298,7 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 
         if (Prt.Nodes.Any(n => n.Id != SelectedNode.Id && n.NodeId == canonical))
         {
-            NodeIdValidationError = $"A node with id '{canonical}' already exists.";
+            NodeIdValidationError = $"Node Id '{canonical}' ist bereits vergeben.";
             return;
         }
 
@@ -306,25 +314,7 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
     private string _editingScoreTrue = "1.0";
 
     [ObservableProperty]
-    private string _editingPenaltyTrue = "0.0";
-
-    [ObservableProperty]
-    private string _editingScoreFalse = "0.0";
-
-    [ObservableProperty]
-    private string _editingPenaltyFalse = "0.1";
-
-    [ObservableProperty]
     private string? _scoreTrueValidationError;
-
-    [ObservableProperty]
-    private string? _penaltyTrueValidationError;
-
-    [ObservableProperty]
-    private string? _scoreFalseValidationError;
-
-    [ObservableProperty]
-    private string? _penaltyFalseValidationError;
 
     partial void OnEditingScoreTrueChanged(string value)
     {
@@ -336,23 +326,29 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 
         if (string.IsNullOrWhiteSpace(value))
         {
-            ScoreTrueValidationError = "Score must be between 0 and 1 (e.g. 1.0, 0.5, 0).";
+            ScoreTrueValidationError = "Score must be a number (e.g. 1.0, 0.5, 0).";
             return;
         }
 
         string normalized = value.Trim().Replace(',', '.');
-        if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedVal) || parsedVal < 0.0 || parsedVal > 1.0)
+        if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedScore) || parsedScore < 0)
         {
-            ScoreTrueValidationError = "Score must be between 0 and 1 (e.g. 1.0, 0.5, 0).";
+            ScoreTrueValidationError = "Score must be a non-negative number (e.g. 1.0, 0.5, 0).";
             return;
         }
 
         ScoreTrueValidationError = null;
-        if (Math.Abs(SelectedNode.ScoreTrue - parsedVal) > 0.0001)
+        if (Math.Abs(SelectedNode.ScoreTrue - parsedScore) > 0.0001)
         {
-            SelectedNode.ScoreTrue = parsedVal;
+            SelectedNode.ScoreTrue = parsedScore;
         }
     }
+
+    [ObservableProperty]
+    private string _editingPenaltyTrue = "0.0";
+
+    [ObservableProperty]
+    private string? _penaltyTrueValidationError;
 
     partial void OnEditingPenaltyTrueChanged(string value)
     {
@@ -364,23 +360,29 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 
         if (string.IsNullOrWhiteSpace(value))
         {
-            PenaltyTrueValidationError = "Penalty must be between 0 and 1 (e.g. 0.1, 0).";
+            PenaltyTrueValidationError = "Penalty must be a number (e.g. 0.1, 0.0).";
             return;
         }
 
         string normalized = value.Trim().Replace(',', '.');
-        if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedVal) || parsedVal < 0.0 || parsedVal > 1.0)
+        if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedPenalty) || parsedPenalty < 0)
         {
-            PenaltyTrueValidationError = "Penalty must be between 0 and 1 (e.g. 0.1, 0).";
+            PenaltyTrueValidationError = "Penalty must be a non-negative number (e.g. 0.1, 0.0).";
             return;
         }
 
         PenaltyTrueValidationError = null;
-        if (Math.Abs(SelectedNode.PenaltyTrue - parsedVal) > 0.0001)
+        if (Math.Abs(SelectedNode.PenaltyTrue - parsedPenalty) > 0.0001)
         {
-            SelectedNode.PenaltyTrue = parsedVal;
+            SelectedNode.PenaltyTrue = parsedPenalty;
         }
     }
+
+    [ObservableProperty]
+    private string _editingScoreFalse = "0.0";
+
+    [ObservableProperty]
+    private string? _scoreFalseValidationError;
 
     partial void OnEditingScoreFalseChanged(string value)
     {
@@ -392,23 +394,29 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 
         if (string.IsNullOrWhiteSpace(value))
         {
-            ScoreFalseValidationError = "Score must be between 0 and 1 (e.g. 1.0, 0.5, 0).";
+            ScoreFalseValidationError = "Score must be a number (e.g. 1.0, 0.5, 0).";
             return;
         }
 
         string normalized = value.Trim().Replace(',', '.');
-        if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedVal) || parsedVal < 0.0 || parsedVal > 1.0)
+        if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedScore) || parsedScore < 0)
         {
-            ScoreFalseValidationError = "Score must be between 0 and 1 (e.g. 1.0, 0.5, 0).";
+            ScoreFalseValidationError = "Score must be a non-negative number (e.g. 1.0, 0.5, 0).";
             return;
         }
 
         ScoreFalseValidationError = null;
-        if (Math.Abs(SelectedNode.ScoreFalse - parsedVal) > 0.0001)
+        if (Math.Abs(SelectedNode.ScoreFalse - parsedScore) > 0.0001)
         {
-            SelectedNode.ScoreFalse = parsedVal;
+            SelectedNode.ScoreFalse = parsedScore;
         }
     }
+
+    [ObservableProperty]
+    private string _editingPenaltyFalse = "0.1";
+
+    [ObservableProperty]
+    private string? _penaltyFalseValidationError;
 
     partial void OnEditingPenaltyFalseChanged(string value)
     {
@@ -420,21 +428,21 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 
         if (string.IsNullOrWhiteSpace(value))
         {
-            PenaltyFalseValidationError = "Penalty must be between 0 and 1 (e.g. 0.1, 0).";
+            PenaltyFalseValidationError = "Penalty must be a number (e.g. 0.1, 0.0).";
             return;
         }
 
         string normalized = value.Trim().Replace(',', '.');
-        if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedVal) || parsedVal < 0.0 || parsedVal > 1.0)
+        if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedPenalty) || parsedPenalty < 0)
         {
-            PenaltyFalseValidationError = "Penalty must be between 0 and 1 (e.g. 0.1, 0).";
+            PenaltyFalseValidationError = "Penalty must be a non-negative number (e.g. 0.1, 0.0).";
             return;
         }
 
         PenaltyFalseValidationError = null;
-        if (Math.Abs(SelectedNode.PenaltyFalse - parsedVal) > 0.0001)
+        if (Math.Abs(SelectedNode.PenaltyFalse - parsedPenalty) > 0.0001)
         {
-            SelectedNode.PenaltyFalse = parsedVal;
+            SelectedNode.PenaltyFalse = parsedPenalty;
         }
     }
 
@@ -464,22 +472,28 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
         {
             TrueFeedbackEditor = null;
             FalseFeedbackEditor = null;
-            foreach (var node in GraphNodes)
+            if (SelectedGraphNodes.Count <= 1)
             {
-                node.IsSelected = false;
+                foreach (var node in GraphNodes)
+                {
+                    node.IsSelected = false;
+                }
+                SelectedGraphNodes.Clear();
             }
-            SelectedGraphNodes.Clear();
         }
         else
         {
-            SelectedGraphNodes.Clear();
-            foreach (var node in GraphNodes)
+            if (SelectedGraphNodes.Count != 1 || SelectedGraphNodes[0].Node.Id != value.Id)
             {
-                bool isSel = (node.Node.Id == value.Id);
-                node.IsSelected = isSel;
-                if (isSel)
+                SelectedGraphNodes.Clear();
+                foreach (var node in GraphNodes)
                 {
-                    SelectedGraphNodes.Add(node);
+                    bool isSel = (node.Node.Id == value.Id);
+                    node.IsSelected = isSel;
+                    if (isSel)
+                    {
+                        SelectedGraphNodes.Add(node);
+                    }
                 }
             }
 
@@ -604,6 +618,11 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
     public void SaveNodePosition(string nodeId, double x, double y)
     {
         _userNodePositions[nodeId] = new Point(x, y);
+        var node = Prt.Nodes.FirstOrDefault(n => n.Id == nodeId || n.NodeId == nodeId);
+        if (node != null)
+        {
+            _userNodePositions[node.Id] = new Point(x, y);
+        }
     }
 
     public ObservableCollection<string> AvailableNodeNames { get; } = new();
@@ -645,6 +664,12 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
         _isRebuildingGraph = true;
         try
         {
+            // Snapshot current positions of existing controls before clearing
+            foreach (var gn in GraphNodes)
+            {
+                _userNodePositions[gn.Node.Id] = new Point(gn.X, gn.Y);
+            }
+
             GraphNodes.Clear();
             GraphWires.Clear();
             UpdateAvailableNodeNames();
@@ -1035,6 +1060,8 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 
         string deletedNodeId = node.NodeId;
         string deletedName = node.DisplayName;
+        _userNodePositions.Remove(node.Id);
+        _userNodePositions.Remove(node.NodeId);
         Prt.Nodes.Remove(node);
 
         // Reset branch references pointing to the deleted node
