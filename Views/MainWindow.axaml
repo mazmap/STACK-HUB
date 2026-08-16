@@ -127,6 +127,7 @@
                 <TextBlock Text="Question settings"/>
                 <Button Content="General settings" Classes="tree-item" Command="{Binding OpenGeneralSettingsCommand}"/>
                 <Button Content="Maxima settings" Classes="tree-item" Command="{Binding OpenMaximaSettingsCommand}"/>
+                <Button Content="Feedback settings" Classes="tree-item" Command="{Binding OpenFeedbackSettingsCommand}"/>
               </StackPanel>
 
               <!-- Category 2: Main Content -->
@@ -276,6 +277,8 @@
           <views:PrtEditorView x:Name="PrewarmPrtEditorView" Width="800" Height="600" Canvas.Left="-9999" Canvas.Top="-9999" />
           <views:InputEditorView x:Name="PrewarmInputEditorView" Width="800" Height="600" Canvas.Left="-9999" Canvas.Top="-9999" />
           <views:GeneralSettingsView x:Name="PrewarmGeneralSettingsView" Width="800" Height="600" Canvas.Left="-9999" Canvas.Top="-9999" />
+          <views:MaximaSettingsView x:Name="PrewarmMaximaSettingsView" Width="800" Height="600" Canvas.Left="-9999" Canvas.Top="-9999" />
+          <views:FeedbackSettingsView x:Name="PrewarmFeedbackSettingsView" Width="800" Height="600" Canvas.Left="-9999" Canvas.Top="-9999" />
         </Canvas>
     </Grid>
 </Window>

@@ -13,12 +13,12 @@ public partial class GeneralSettingsViewModel : ViewModelBase, ICacheablePane
     {
         Question = question;
         _editingDefaultGrade = question.DefaultGrade.ToString("0.##", CultureInfo.InvariantCulture);
-        _descriptionEditor = new CasTextEditorViewModel(question.Description, wordWrap: true);
+        _descriptionEditor = new CasTextEditorViewModel(question.QuestionDescription, wordWrap: true);
         _descriptionEditor.PropertyChanged += (s, e) =>
         {
             if (e.PropertyName == nameof(CasTextEditorViewModel.Text))
             {
-                question.Description = _descriptionEditor.Text;
+                question.QuestionDescription = _descriptionEditor.Text;
             }
         };
 

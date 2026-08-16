@@ -57,6 +57,12 @@ public partial class MainWindow : Window
 
         // Pre-warm General Settings layout & styling pipeline at launch
         PrewarmGeneralSettingsView.DataContext = mainVm.GetGeneralSettingsViewModel();
+
+        // Pre-warm Maxima Settings layout & styling pipeline at launch
+        PrewarmMaximaSettingsView.DataContext = mainVm.GetMaximaSettingsViewModel();
+
+        // Pre-warm Feedback Settings layout & styling pipeline at launch
+        PrewarmFeedbackSettingsView.DataContext = mainVm.GetFeedbackSettingsViewModel();
     }
 
     private void OnDialogBackdropPointerPressed(object? sender, PointerPressedEventArgs e)

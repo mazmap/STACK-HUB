@@ -8,48 +8,55 @@ namespace STACK_HUB.Models;
 public partial class StackQuestion : ObservableObject
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
+    
+    // ################
+    // GENERAL SETTINGS
+    // ################
+    
+    [ObservableProperty] private string _name = "ANW_ALL_MET_001 Grundlagen von Metriken (NORM_METRIK_008_02_M-_Imp_Metriken Basisfrage)";
+    [ObservableProperty] private double _defaultGrade = 3.0;
+    [ObservableProperty] private double _penalty = 0.1;
+    [ObservableProperty] private bool _hidden = false;
+    [ObservableProperty] private string _idNumber = string.Empty;
+    [ObservableProperty] private string _stackVersion = string.Empty;
+    [ObservableProperty] private string _questionDescription = string.Empty;
+    [ObservableProperty] private string _questionNote = string.Empty;
+    [ObservableProperty] private string _variantSelectionSeed = string.Empty;
+    
+    // ################
+    // MAXIMA SETTINGS
+    // ################
 
-    [ObservableProperty]
-    private string _name = "ANW_ALL_MET_001 Grundlagen von Metriken (NORM_METRIK_008_02_M-_Imp_Metriken Basisfrage)";
+    [ObservableProperty] private bool _questionSimplify = true;
+    [ObservableProperty] private bool _assumePositive = false;
+    [ObservableProperty] private bool _assumeReal = false;
+    [ObservableProperty] private char _decimals = '.';
+    [ObservableProperty] private string _scientificNotation = "10E";
+    [ObservableProperty] private string _multiplicationSign = "dot"; // none, dot, cross, onum, space
+    [ObservableProperty] private bool _sqrtSign = true; // using sqrt notation or x^1/2 (sets sqrtdispflag in maxima)
+    [ObservableProperty] private string _complexNo = "i"; // i or j or symi or symj
+    [ObservableProperty] private string _inverseTrig = "cos-1"; // cos-1 or acos or arccos
+    [ObservableProperty] private string _logicSymbol = "lang"; // lang or symbol 
+    [ObservableProperty] private string _matrixParens = "["; // [ or ( or { or | or nothing 
+    
+    // ################
+    // FEEDBACK SETTINGS
+    // ################
 
-    [ObservableProperty]
-    private double _defaultGrade = 3.0;
-
-    [ObservableProperty]
-    private double _penalty = 0.1;
-
-    [ObservableProperty]
-    private string _idNumber = string.Empty;
-
-    [ObservableProperty]
-    private string _description = string.Empty;
-
-    [ObservableProperty]
-    private string _questionNote = string.Empty;
-
-    [ObservableProperty]
-    private string _correctFeedback = "Richtige Antwort, gut gemacht!";
-
-    [ObservableProperty]
-    private string _partiallyCorrectFeedback = "Ihre Antwort ist teilweise korrekt.";
-
-    [ObservableProperty]
-    private string _incorrectFeedback = "Ihre Antwort ist falsch.";
-
-    [ObservableProperty]
-    private string _questionVariables = "/* Define question variables in Maxima here */\nvars: [x, y];\nexpr: 3*x^2 + 5*y;\nmodel_ans: 3*x^2 + 5*y;";
-
-    [ObservableProperty]
-    private string _questionText = "<!-- STYLING -->\n<style>\n.stack .option {\n    margin: .7em 0;\n    background: rgba(255, 255, 255, 0.05);\n    padding: 7px 10px;\n}\n</style>\n\n<!-- QUESTION TEXT -->\n<p>Consider the mathematical expression \\( A = {@expr@} \\).</p>\n<p>Please enter the expression in the input box below:</p>\n\n[[input:ans1]] [[validation:ans1]]\n\n[[feedback:prt1]]";
-
+    [ObservableProperty] private string _correctFeedback = "Richtige Antwort, gut gemacht!";
+    [ObservableProperty] private string _partiallyCorrectFeedback = "Ihre Antwort ist teilweise korrekt.";
+    [ObservableProperty] private string _incorrectFeedback = "Ihre Antwort ist falsch.";
+    public ObservableCollection<string> Hints { get; set; } = new();
+    
+    // ################
+    // NON-SETTINGS
+    // ################
+    
+    [ObservableProperty] private string _questionVariables = "/* Define question variables in Maxima here */\nvars: [x, y];\nexpr: 3*x^2 + 5*y;\nmodel_ans: 3*x^2 + 5*y;";
+    [ObservableProperty] private string _questionText = "<!-- STYLING -->\n<style>\n.stack .option {\n    margin: .7em 0;\n    background: rgba(255, 255, 255, 0.05);\n    padding: 7px 10px;\n}\n</style>\n\n<!-- QUESTION TEXT -->\n<p>Consider the mathematical expression \\( A = {@expr@} \\).</p>\n<p>Please enter the expression in the input box below:</p>\n\n[[input:ans1]] [[validation:ans1]]\n\n[[feedback:prt1]]";
     public ObservableCollection<StackInput> Inputs { get; set; } = new();
-
-    [ObservableProperty]
-    private string _specificFeedback = "[[feedback:prt1]]";
-
-    [ObservableProperty]
-    private string _generalFeedback = "<p>Here is the worked solution... the correct answer was indeed \\( {@model_ans@} \\).</p>";
-
+    [ObservableProperty] private string _specificFeedback = "[[feedback:prt1]]";
+    [ObservableProperty] private string _generalFeedback = "<p>Here is the worked solution... the correct answer was indeed \\( {@model_ans@} \\).</p>";
     public ObservableCollection<StackPrt> Prts { get; set; } = new();
 
     public StackQuestion()
@@ -195,14 +202,9 @@ public partial class StackInput : ObservableObject
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
 
-    [ObservableProperty]
-    private string _name = "ans1";
-
-    [ObservableProperty]
-    private string _type = "algebraic"; // 16 STACK input types
-
-    [ObservableProperty]
-    private string _teacherAnswer = "model_ans"; // tans
+    [ObservableProperty] private string _name = "ans1";
+    [ObservableProperty] private string _type = "algebraic"; // 16 STACK input types
+    [ObservableProperty] private string _teacherAnswer = "model_ans"; // tans
 
     public string ModelAnswer
     {
@@ -210,14 +212,9 @@ public partial class StackInput : ObservableObject
         set => TeacherAnswer = value;
     }
 
-    [ObservableProperty]
-    private int _boxSize = 15;
-
-    [ObservableProperty]
-    private bool _strictSyntax = true;
-
-    [ObservableProperty]
-    private int _insertStars = 0; // 0 or 1
+    [ObservableProperty] private int _boxSize = 15;
+    [ObservableProperty] private bool _strictSyntax = true;
+    [ObservableProperty] private int _insertStars = 0; // 0 or 1
 
     public bool InsertStarsBool
     {
@@ -230,35 +227,16 @@ public partial class StackInput : ObservableObject
         OnPropertyChanged(nameof(InsertStarsBool));
     }
 
-    [ObservableProperty]
-    private string _syntaxHint = string.Empty;
-
-    [ObservableProperty]
-    private int _syntaxAttribute = 0; // 0 = Value, 1 = Placeholder
-
-    [ObservableProperty]
-    private string _forbidWords = string.Empty;
-
-    [ObservableProperty]
-    private string _allowWords = string.Empty;
-
-    [ObservableProperty]
-    private bool _forbidFloat = false;
-
-    [ObservableProperty]
-    private bool _requireLowestTerm = true;
-
-    [ObservableProperty]
-    private bool _checkAnswerType = false;
-
-    [ObservableProperty]
-    private bool _mustVerify = true;
-
-    [ObservableProperty]
-    private int _showValidation = 1; // 0 = No, 1 = Yes (with variable), 2 = Yes (without variable)
-
-    [ObservableProperty]
-    private string _options = string.Empty;
+    [ObservableProperty] private string _syntaxHint = string.Empty;
+    [ObservableProperty] private int _syntaxAttribute = 0; // 0 = Value, 1 = Placeholder
+    [ObservableProperty] private string _forbidWords = string.Empty;
+    [ObservableProperty] private string _allowWords = string.Empty;
+    [ObservableProperty] private bool _forbidFloat = false;
+    [ObservableProperty] private bool _requireLowestTerm = true;
+    [ObservableProperty] private bool _checkAnswerType = false;
+    [ObservableProperty] private bool _mustVerify = true;
+    [ObservableProperty] private int _showValidation = 1; // 0 = No, 1 = Yes (with variable), 2 = Yes (without variable)
+    [ObservableProperty] private string _options = string.Empty;
 
     public bool SyntaxCheck
     {

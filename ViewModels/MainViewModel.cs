@@ -163,10 +163,46 @@ public partial class MainViewModel : ObservableObject
         }, DispatcherPriority.Render);
     }
     
+    private MaximaSettingsViewModel? _maximaSettingsViewModel;
+
+    public MaximaSettingsViewModel GetMaximaSettingsViewModel()
+    {
+        _maximaSettingsViewModel ??= new MaximaSettingsViewModel(ActiveQuestion);
+        return _maximaSettingsViewModel;
+    }
+
     [RelayCommand]
     private void OpenMaximaSettings()
     {
-        Workspace.OpenOrFocusPane("settings:maxima", "Maxima Settings", "Maxima Settings Content");
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var vm = GetMaximaSettingsViewModel();
+        Workspace.OpenOrFocusPane("settings:maxima", "Maxima Settings", vm);
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            sw.Stop();
+            System.Console.WriteLine($"[MaximaSettingsView]: {sw.ElapsedMilliseconds} ms");
+        }, DispatcherPriority.Render);
+    }
+
+    private FeedbackSettingsViewModel? _feedbackSettingsViewModel;
+
+    public FeedbackSettingsViewModel GetFeedbackSettingsViewModel()
+    {
+        _feedbackSettingsViewModel ??= new FeedbackSettingsViewModel(ActiveQuestion);
+        return _feedbackSettingsViewModel;
+    }
+
+    [RelayCommand]
+    private void OpenFeedbackSettings()
+    {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var vm = GetFeedbackSettingsViewModel();
+        Workspace.OpenOrFocusPane("settings:feedback", "Feedback Settings", vm);
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            sw.Stop();
+            System.Console.WriteLine($"[FeedbackSettingsView]: {sw.ElapsedMilliseconds} ms");
+        }, DispatcherPriority.Render);
     }
 
     [RelayCommand]

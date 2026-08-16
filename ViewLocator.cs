@@ -72,6 +72,14 @@ public class ViewLocator : IDataTemplate
             {
                 view = EditorPool<GeneralSettingsView>.GetOrCreate();
             }
+            else if (type == typeof(MaximaSettingsView))
+            {
+                view = EditorPool<MaximaSettingsView>.GetOrCreate();
+            }
+            else if (type == typeof(FeedbackSettingsView))
+            {
+                view = EditorPool<FeedbackSettingsView>.GetOrCreate();
+            }
             else
             {
                 view = (Control)Activator.CreateInstance(type)!;
