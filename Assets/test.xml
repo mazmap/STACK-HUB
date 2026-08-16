@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quiz>
+<!-- question: 33240446  -->
+  <question type="stack">
+    <name>
+      <text>ANA_FUB_TRI_xxx290_MC: VLx: cos^2(x)</text>
+    </name>
+    <questiontext format="html">
+      <text><![CDATA[<!-- STYLING -->
+<style>
+  .que.stack .formulation .answer .option {
+    margin: .7em 0;
+    background: rgba(255, 255, 255, 0.75);
+    padding: 7px 10px;
+  }
+</style>
+
+<!-- FRAGETEXT -->
+<p>Wählen Sie unter den angegebenen Darstellungen die Reihendarstellung(en) von $\cos(x)^2$ aus:</p>
+
+[[input:ans1]] [[validation:ans1]]
+
+[[feedback:prt1]]]]></text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text><![CDATA[<!-- STYLING -->
+<style>
+  .statement-card {
+    margin: .7em 0;
+    background: rgba(255, 255, 255, 0.75);
+    padding: 7px 10px;
+  }
+  .statement-card hr {
+    margin-top: 7px;
+    margin-bottom: 7px;
+  }
+</style>
+
+<!-- GENERAL FEEDBACK TEXT -->
+<p><strong>Musterlösung:</strong></p>
+
+<p>
+Wir machen zunächst eine Vorbemerkung. Sei \( x \in \mathbb R \). Mit dem Additionstheorem für \(\cos\) erhalten wir 
+    \[\begin{align*}
+        \cos(2x) &= \cos(x+x) \\
+        &= \cos^2(x) - \sin^2(x).
+    \end{align*}\]
+    Ferner folgt mit dem trigonometrischen Pythagoras, also \( \sin^2(x) + \cos^2(x) = 1 \), dass \( \sin^2(x) = 1 - \cos^2(x) \). Insgesamt haben wir also 
+    \[\begin{align*}
+        \cos(2x) &= \cos^2(x) - 1 + \cos^2(x) \\
+        &= 2\cos^2(x) - 1.
+    \end{align*}\]
+    Also gilt \( \cos^2(x) = \frac{1 + \cos(2x)}{2} = \frac{1}{2} + \frac{1}{2}\cos(2x) \). 
+</p>
+
+[[ foreach i="makelist(i,i,1,Nsm)" ]]
+
+[[ if test="is(perm[i]=1)" ]] 
+<!-- SOLUTION FOR STATEMENT 1 (sm[1]) -->
+<div class="statement-card">
+  <p>Zu "{@statement(i)@}":</p>
+  <p>{@feedback(i)@}</p>
+  <hr>
+
+  <p>
+    In der Lösung zu einer anderen Antwortmöglichkeit haben wir gezeigt, dass \( \cos^2(x) = \frac{1}{2} + \frac{1}{2} \sum_{n=0}^\infty \frac{(2x)^{2n}}{(2n)!} \). Diese Reihe können wir noch etwas anders schreiben: 
+    \[\begin{align*}
+        \cos^2(x) &= \frac{1}{2} + \frac{1}{2} \sum_{n=0}^\infty \frac{(2x)^{2n}}{(2n)!} \\
+        &= \frac{1}{2} + \frac{1}{2} \sum_{n=0}^\infty \frac{2^{2n}x^{2n}}{(2n)!} \\
+        &= \frac{1}{2} + \sum_{n=0}^\infty \frac{2^{2n}x^{2n}}{2\cdot(2n)!} \\ 
+        &= \frac{1}{2} + \sum_{n=0}^\infty \frac{2^{2n-1}x^{2n}}{(2n)!} \\
+        &= \frac{1}{2} + \frac{2^{-1}x^{0}}{0!} + \sum_{n=1}^\infty \frac{2^{2n-1}x^{2n}}{(2n)!} \\
+        &= \frac{1}{2} + \frac{1}{2} + \sum_{n=1}^\infty \frac{2^{2n-1}x^{2n}}{(2n)!} \\
+        &= 1 + \sum_{n=1}^\infty \frac{2^{2n-1}x^{2n}}{(2n)!}
+    \end{align*}\]
+  </p>
+</div>
+
+[[ elif test="is(perm[i]=2)" ]]
+<!-- SOLUTION FOR STATEMENT 2 (sm[2]) -->
+<div class="statement-card">
+  <p>Zu "{@statement(i)@}":</p>
+  <p>{@feedback(i)@}</p>
+  <hr>
+
+  [[ if test="is(rp_sm[2]=1)" ]]
+  <p>
+    Es gilt \( \cos^2(0) = 1 \). Setzen wir jedoch \( x = 0 \) in die gegebene Reihe ein, so erhalten wir 
+   \[\begin{align*}
+       1+\sum_{n=0}^{\infty} (-1)^n \frac{2^{2n-1} 0^{2n}}{(2n)!} &= 1 + (-1)^0 \frac{2^{2\cdot 0 - 1} 0^{2\cdot 0}}{(2\cdot 0)!} + \sum_{n=1}^{\infty} (-1)^n \frac{2^{2n-1} 0^{2n}}{(2n)!} \\
+       &= 1 + \frac{1}{2} + 0 = \frac{3}{2}.
+   \end{align*}\]
+  </p>
+  [[ elif test="is(rp_sm[2]=2)" ]]
+  <p>
+    Es gilt \( \cos^2(0) = 1 \). Setzen wir jedoch \( x = 0 \) in die gegebene Reihe ein, so erhalten wir 
+   \[\begin{align*}
+       \frac{1}{2} - \sum_{n=0}^{\infty} (-1)^n \frac{2^{2n-1} 0^{2n}}{(2n)!} &= \frac{1}{2} - (-1)^0 \frac{2^{2\cdot 0 -1} 0^{2\cdot 0}}{(2\cdot 0)!} - \sum_{n=1}^{\infty} (-1)^n \frac{2^{2n-1} 0^{2n}}{(2n)!} \\
+       &= \frac{1}{2} - \frac{1}{2} + 0 = 0.
+   \end{align*}\]
+  </p>
+  [[ else ]]
+  [[/ if ]]
+</div>
+
+[[ elif test="is(perm[i]=3)" ]]
+<!-- SOLUTION FOR STATEMENT 3 (sm[3]) -->
+<div class="statement-card">
+  <p>Zu "{@statement(i)@}":</p>
+  <p>{@feedback(i)@}</p>
+  <hr>
+
+  [[ if test="is(rp_sm[3]=1)" ]]
+  <p>
+      Diese Reihe ist eine Reihendarstellung von \( \cos(2x) \), die wir einfach aus der Reihendarstellung von \( \cos(x) = \sum_{n=0}^\infty (-1)^n \frac{x^{2n}}{(2n)!} \) erhalten. Nach der Vorbemerkung gilt \( \cos^2(x) = \frac{1}{2} + \frac{1}{2}\cos(2x) \), woraus insbesondere folgt, dass \( \cos^2(x) \) und \( \cos(2x) \) nicht die gleiche Funktion sind. Also ist diese Reihe keine Reinendarstellung von \( \cos^2(x) \). 
+  </p>
+  [[ elif test="is(rp_sm[3]=2)" ]]
+  <p>
+    Diese Reihe ist eine Reihendarstellung von \( \cos(x^2) \), die wir einfach aus der Reihendarstellung von \( \cos(x) = \sum_{n=0}^\infty (-1)^n \frac{x^{2n}}{(2n)!} \) erhalten. Allerdings sind \( \cos(x^2) \) und \( \cos^2(x) \) nicht dieselbe Funktion. So ist zum Beispiel \( x = \pi \) eine Nullstelle von \( \cos^2(x) \), aber nicht von \( \cos(x^2) \). Also ist diese Reihe keine Reinendarstellung von \( \cos^2(x) \). 
+  </p>
+  [[ else ]]
+  [[/ if ]]
+</div>
+
+[[ elif test="is(perm[i]=4)" ]]
+<!-- SOLUTION FOR STATEMENT 4 (sm[4]) -->
+<div class="statement-card">
+  <p>Zu "{@statement(i)@}":</p>
+  <p>{@feedback(i)@}</p>
+  <hr>
+
+  [[ if test="is(rp_sm[4]=1)" ]]
+  <p>
+    Es gilt \( \cos^2(0) = 1 \). Setzen wir jedoch \( x = 0 \) in die gegebene Reihe ein, so erhalten wir 
+   \[
+       \sum_{n=1}^{\infty} (-1)^n \frac{2^{2n-1} 0^{2n}}{(2n)!} = 0.
+   \]
+  </p>
+  [[ else ]]
+  [[/ if ]]
+</div>
+
+[[ elif test="is(perm[i]=5)" ]]
+<!-- SOLUTION FOR STATEMENT 5 (sm[5]) -->
+<div class="statement-card">
+  <p>Zu "{@statement(i)@}":</p>
+  <p>{@feedback(i)@}</p>
+  <hr>
+
+  <p>
+    Mit der Reihendarstellung \( \cos(x) = \sum_{n=0}^\infty \frac{x^{2n}}{(2n)!} \) und der Vorbemerkung erhalten wir diese Reihendarstellung von \( \cos^2(x) \): 
+    \[
+        \cos^2(x) = \frac{1}{2} + \frac{1}{2} \sum_{n=0}^\infty \frac{(2x)^{2n}}{(2n)!}.
+    \]
+  </p>
+</div>
+
+<!-- [EDIT] For each new statement, add another elif-"block" here anologously to the ones above -->
+
+[[ else ]]
+[[/ if ]]
+
+[[/ foreach ]]]]></text>
+    </generalfeedback>
+    <defaultgrade>3</defaultgrade>
+    <penalty>0.1</penalty>
+    <hidden>0</hidden>
+    <idnumber></idnumber>
+    <stackversion>
+      <text>2025040100</text>
+    </stackversion>
+    <questionvariables>
+      <text><![CDATA[/* Autor: Florian Lindemann (TU München) & Team */
+/* Nutzung und Weitergabe nach Absprache: lindemann@tum.de */
+/* überarbeitet von Matteo Mertz (TU München) */
+
+Nsm: 5; /* [EDIT] Change this number to match the number of statements you want to test */
+
+/* [START] DO NOT CHANGE BLOCK */
+
+/* sm[i] = i-th statement */
+sm: makelist("", i, 1, Nsm);
+/* rpsm[i] = randomisation parameter for statement sm[i]  */
+rp_sm: makelist(0, i, 1, Nsm);
+/* sol_sm[i] = truth-value of statement sm[i] */
+sol_sm: makelist(false, i, 1, Nsm);
+
+/* [END] DO NOT CHANGE BLOCK */
+
+/* 
+STATEMENTS
+*/
+
+/* Statements (entries in the list "sm"), their random parameters (entries in the list "rp_sm"), and their truth-values (entries in the list "sol_sm") depending on the randomisation parameter. */
+/* [EDIT] (1) Adjust the &list& in "rpsm[sm_counter]: rand(&list&)" to the intended selection of variants of the statements, (2) give the variants of the statements (copy-paste another "if"-block per variant), (3) set the truth-values of the variants. */
+
+/* Statement 1 */
+sm_counter: 1;
+rp_sm[sm_counter]: rand([1]);
+if rp_sm[sm_counter]=1 then (
+  sm[sm_counter]: "\\(1+\\sum\\limits_{n=1}^{\\infty} (-1)^n \\frac{2^ {2n-1} x^{2n}}{(2n)!}\\)",
+  sol_sm[sm_counter]: true
+);
+
+/* [START] Block to copy for additional statements */
+/* Statement 2 */
+sm_counter: sm_counter+1;
+rp_sm[sm_counter]: rand([1,2]);
+if rp_sm[sm_counter]=1 then (
+  sm[sm_counter]: "\\(1+\\sum\\limits_{n=0}^{\\infty} (-1)^n \\frac{2^{2n-1} x^{2n}}{(2n)!}\\)",
+  sol_sm[sm_counter]: false
+);
+if rp_sm[sm_counter]=2 then (
+  sm[sm_counter]: "\\(\\frac12-\\sum\\limits_{n=0}^{\\infty} (-1)^n \\frac{2^ {2n-1} x^{2n}}{(2n)!}\\)",
+  sol_sm[sm_counter]: false
+);
+/* [END] Block to copy for additional statements */
+
+/* Statement 3 */
+sm_counter: sm_counter+1;
+rp_sm[sm_counter]: rand([1,2]);
+if rp_sm[sm_counter]=1 then (
+  sm[sm_counter]: "\\(\\sum\\limits_{n=0}^{\\infty} (-1)^n \\frac{(2x)^{2n}}{(2n)!}\\)",
+  sol_sm[sm_counter]: false
+);
+if rp_sm[sm_counter]=2 then (
+  sm[sm_counter]: "\\(\\sum\\limits_{n=0}^{\\infty} (-1)^n \\frac{x^{4n}}{(2n)!}\\)",
+  sol_sm[sm_counter]: false
+);
+
+/* Statement 4 */
+sm_counter: sm_counter+1;
+rp_sm[sm_counter]: rand([1]);
+if rp_sm[sm_counter]=1 then (
+  sm[sm_counter]: "\\(\\sum\\limits_{n=1}^{\\infty} (-1)^n \\frac{2^ {2n-1} x^{2n}}{(2n)!}\\)",
+  sol_sm[sm_counter]: false
+);
+
+/* Statement 5 */
+sm_counter: sm_counter+1;
+rp_sm[sm_counter]: rand([1]);
+if rp_sm[sm_counter]=1 then (
+  sm[sm_counter]: "\\(\\frac{1}{2} + \\frac{1}{2} \\sum\\limits_{n=0}^{\\infty} (-1)^n \\frac{(2x)^{2n}}{(2n)!}\\)",
+  sol_sm[sm_counter]: true
+);
+
+/* [EDIT] For each new statement, add another if-block analogously to the one with "sm_counter: sm_counter+1". */
+
+/*
+OPTIONS
+*/
+
+/* This will be shown in the general feedback block for each statement respectively. */
+/* [EDIT] If you want to change these texts do so in the following two lines. */
+sol_text1: "Diese Reihe ist eine KORREKTE Reihendarstellung von \\(\\cos^2(x)\\).";
+sol_text2: "Diese Reihe ist KEINE Reihendarstellung von \\(\\cos^2(x)\\).";
+
+/* [START] DO NOT CHANGE BLOCK */
+
+/* TEACHER ANSWERS */
+/* tans = (permutated)) teacher answers */
+perm: random_permutation(makelist(i,i,1,Nsm));
+tans: makelist([],i,1,Nsm);
+for i in makelist(i,i,1,Nsm) do 
+  tans[i]: [i, sol_sm[perm[i]], sm[perm[i]]]; 
+
+taB: tans;
+
+/* HELPER FUNCTIONS */
+statement(n) := sm[perm[n]];
+feedback(n) := if sol_sm[perm[n]] then sol_text1 else sol_text2;
+
+/* [END] DO NOT CHANGE BLOCK */]]></text>
+    </questionvariables>
+    <specificfeedback format="html">
+      <text></text>
+    </specificfeedback>
+    <questionnote format="html">
+      <text>{@taB@}, {@perm@}</text>
+    </questionnote>
+    <questiondescription format="html">
+      <text></text>
+    </questiondescription>
+    <questionsimplify>1</questionsimplify>
+    <assumepositive>0</assumepositive>
+    <assumereal>0</assumereal>
+    <prtcorrect format="html">
+      <text>Richtige Antwort, gut gemacht!</text>
+    </prtcorrect>
+    <prtpartiallycorrect format="html">
+      <text>Ihre Antwort ist teilweise korrekt.</text>
+    </prtpartiallycorrect>
+    <prtincorrect format="html">
+      <text>Falsche Antwort.</text>
+    </prtincorrect>
+    <decimals>.</decimals>
+    <scientificnotation>*10</scientificnotation>
+    <multiplicationsign>dot</multiplicationsign>
+    <sqrtsign>1</sqrtsign>
+    <complexno>i</complexno>
+    <inversetrig>cos-1</inversetrig>
+    <logicsymbol>lang</logicsymbol>
+    <matrixparens>[</matrixparens>
+    <variantsselectionseed></variantsselectionseed>
+    <input>
+      <name>ans1</name>
+      <type>checkbox</type>
+      <tans>taB</tans>
+      <boxsize>15</boxsize>
+      <strictsyntax>1</strictsyntax>
+      <insertstars>0</insertstars>
+      <syntaxhint></syntaxhint>
+      <syntaxattribute>0</syntaxattribute>
+      <forbidwords></forbidwords>
+      <allowwords></allowwords>
+      <forbidfloat>1</forbidfloat>
+      <requirelowestterms>0</requirelowestterms>
+      <checkanswertype>0</checkanswertype>
+      <mustverify>0</mustverify>
+      <showvalidation>0</showvalidation>
+      <options></options>
+    </input>
+    <prt>
+      <name>prt1</name>
+      <value>1.0000000</value>
+      <autosimplify>1</autosimplify>
+      <feedbackstyle>1</feedbackstyle>
+      <feedbackvariables>
+        <text>/* 
+ans1 = list of the CAS values assigned to the selected options 
+mcq_correct(tans) = list of the CAS values assigned to the correct (true) options
+mcq_incorrect(tans) = list of the CAS values assigned to the incorrect (false) options
+*/
+
+numOptions: length(tans);
+
+correctOptionValues: mcq_correct(tans);
+incorrectOptionValues: mcq_incorrect(tans);
+
+numCorrectOptions: length(correctOptionValues);
+numIncorrectOptions: length(incorrectOptionValues);
+
+correctInputs: sublist(ans1, lambda([x], member(x, correctOptionValues))); /* creates a list of all elements of ans1 that are values of the correct (=in tans as true) options */
+incorrectInputs: sublist(ans1, lambda([x], member(x, incorrectOptionValues))); /* creates a list of all elements of ans1 that are values of the incorrect (=in tans as false) options */
+
+numCorrectlySelected: length(correctInputs);
+numCorrectlyNotSelected: numIncorrectOptions - length(incorrectInputs);
+
+mark: (numCorrectlySelected + numCorrectlyNotSelected) / numOptions;</text>
+      </feedbackvariables>
+      <node>
+        <name>0</name>
+        <description>Bewertet MC-Antwort inkl. Teilpunkte</description>
+        <answertest>AlgEquiv</answertest>
+        <sans>ans1</sans>
+        <tans>correctOptionValues</tans>
+        <testoptions></testoptions>
+        <quiet>1</quiet>
+        <truescoremode>=</truescoremode>
+        <truescore>1</truescore>
+        <truepenalty></truepenalty>
+        <truenextnode>-1</truenextnode>
+        <trueanswernote>prt1-1-T</trueanswernote>
+        <truefeedback format="html">
+          <text></text>
+        </truefeedback>
+        <falsescoremode>=</falsescoremode>
+        <falsescore>mark</falsescore>
+        <falsepenalty></falsepenalty>
+        <falsenextnode>-1</falsenextnode>
+        <falseanswernote>prt1-1-F</falseanswernote>
+        <falsefeedback format="html">
+          <text><![CDATA[<p>
+Sie haben aus allen {#numOptions#} Aussagen genau {#numCorrectlySelected#} korrekt ausgewählt und {#numCorrectlyNotSelected#} korrekt <em>nicht</em> ausgewählt.
+</p>]]></text>
+        </falsefeedback>
+      </node>
+    </prt>
+  </question>
+
+</quiz>

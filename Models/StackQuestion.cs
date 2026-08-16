@@ -493,7 +493,13 @@ public partial class StackPrtNode : ObservableObject
     private string _trueFeedback = "<p>Prima, das ist richtig!</p>";
 
     [ObservableProperty]
-    private string _falseFeedback = "<p>Prima, das ist richtig!</p>";
+    private string _falseFeedback = "<p>Das ist leider nicht richtig.</p>";
 
-    public string MaximaCheck => $"{AnswerTest}({StudentAnswer},{TeacherAnswer})";
+    [ObservableProperty]
+    private string _answerNoteTrue = string.Empty;
+
+    [ObservableProperty]
+    private string _answerNoteFalse = string.Empty;
+
+    public string MaximaCheck => $"{AnswerTest}({StudentAnswer}, {TeacherAnswer})";
 }

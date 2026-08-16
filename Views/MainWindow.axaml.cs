@@ -63,6 +63,90 @@ public partial class MainWindow : Window
 
         // Pre-warm Feedback Settings layout & styling pipeline at launch
         PrewarmFeedbackSettingsView.DataContext = mainVm.GetFeedbackSettingsViewModel();
+
+        mainVm.RequestOpenFilePickerAsync = OpenQuestionFileDialogAsync;
+
+        // On macOS, the system top menu bar is used; hide the duplicate in-window menu bar
+        if (System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.OSX))
+        {
+            var inWindowMenuBar = this.FindControl<Border>("InWindowMenuBar");
+            if (inWindowMenuBar != null)
+            {
+                inWindowMenuBar.IsVisible = false;
+            }
+        }
+    }
+
+    private async void OnOpenQuestionMenuClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        await OpenQuestionFileDialogAsync();
+    }
+
+    private void OnExitMenuClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.Shutdown();
+        }
+    }
+
+    private async void OnNativeOpenQuestionMenuClicked(object? sender, System.EventArgs e)
+    {
+        await OpenQuestionFileDialogAsync();
+    }
+
+    private void OnNativeExitMenuClicked(object? sender, System.EventArgs e)
+    {
+        if (Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.Shutdown();
+        }
+    }
+
+    public async System.Threading.Tasks.Task OpenQuestionFileDialogAsync()
+    {
+        try
+        {
+            var storageProvider = this.StorageProvider;
+            if (storageProvider == null)
+            {
+                System.Console.WriteLine("[OpenFilePicker] StorageProvider is null!");
+                return;
+            }
+
+            var files = await storageProvider.OpenFilePickerAsync(new Avalonia.Platform.Storage.FilePickerOpenOptions
+            {
+                Title = "Open Moodle STACK Question XML",
+                AllowMultiple = false,
+                FileTypeFilter = new[]
+                {
+                    new Avalonia.Platform.Storage.FilePickerFileType("XML Files (*.xml)")
+                    {
+                        Patterns = new[] { "*.xml" }
+                    },
+                    new Avalonia.Platform.Storage.FilePickerFileType("All Files (*.*)")
+                    {
+                        Patterns = new[] { "*.*" }
+                    }
+                }
+            });
+
+            if (files != null && files.Count > 0)
+            {
+                await using var stream = await files[0].OpenReadAsync();
+                using var reader = new System.IO.StreamReader(stream);
+                string xmlContent = await reader.ReadToEndAsync();
+
+                if (DataContext is MainViewModel mainVm)
+                {
+                    mainVm.LoadQuestionXml(xmlContent);
+                }
+            }
+        }
+        catch (System.Exception ex)
+        {
+            System.Console.WriteLine($"[OpenQuestionFileDialogAsync ERROR]: {ex}");
+        }
     }
 
     private void OnDialogBackdropPointerPressed(object? sender, PointerPressedEventArgs e)

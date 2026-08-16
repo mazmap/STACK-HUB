@@ -9,6 +9,11 @@ using STACK_HUB.Docking.Models;
 using STACK_HUB.Docking.Services;
 using STACK_HUB.Models;
 
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using System.Threading.Tasks;
+using STACK_HUB.Services;
+
 namespace STACK_HUB.ViewModels;
 
 public enum AddDialogTarget
@@ -19,8 +24,58 @@ public enum AddDialogTarget
 
 public partial class MainViewModel : ObservableObject
 {
-    public StackQuestion ActiveQuestion { get; set; } = new();
+    [ObservableProperty]
+    private StackQuestion _activeQuestion = new();
+
     public DockingWorkspaceModel Workspace { get; } = new();
+
+    public Func<Task>? RequestOpenFilePickerAsync { get; set; }
+
+    [RelayCommand]
+    public async Task OpenQuestionFile()
+    {
+        if (RequestOpenFilePickerAsync != null)
+        {
+            await RequestOpenFilePickerAsync.Invoke();
+        }
+    }
+
+    [RelayCommand]
+    public void CloseApplication()
+    {
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.Shutdown();
+        }
+    }
+
+    public void LoadQuestion(StackQuestion question)
+    {
+        ActiveQuestion = question;
+        _prtEditorCache.Clear();
+        _inputEditorCache.Clear();
+        _generalSettingsViewModel = null;
+        _maximaSettingsViewModel = null;
+        _feedbackSettingsViewModel = null;
+
+        foreach (var input in question.Inputs)
+        {
+            _inputEditorCache[input.Id] = new InputEditorViewModel(input);
+        }
+
+        foreach (var prt in question.Prts)
+        {
+            _prtEditorCache[prt.Id] = new PrtEditorViewModel(prt);
+        }
+
+        OpenGeneralSettings();
+    }
+
+    public void LoadQuestionXml(string xmlContent)
+    {
+        var question = MoodleXmlService.ParseQuestion(xmlContent);
+        LoadQuestion(question);
+    }
 
     [ObservableProperty]
     private bool _isAddDialogOpen;

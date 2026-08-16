@@ -81,10 +81,12 @@ public partial class DockingWorkspaceModel : ObservableObject
             return;
         }
 
-        // Case 2: Pane is already open -> bring its tab to focus
+        // Case 2: Pane is already open -> update its content and bring its tab to focus
         var existingPane = FindPaneById(RootLayout, paneId);
         if (existingPane != null)
         {
+            existingPane.Title = title;
+            existingPane.ContentViewModel = contentViewModel;
             if (existingPane.Parent is TabGroupNode group)
             {
                 group.ActivePane = existingPane;

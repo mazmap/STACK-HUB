@@ -13,6 +13,24 @@
         Background="#2D2D2D"
         Icon="/Assets/avalonia-logo.ico"
         Title="STACK HUB">
+
+  <NativeMenu.Menu>
+    <NativeMenu>
+      <NativeMenuItem Header="File">
+        <NativeMenu>
+          <NativeMenuItem Header="Open Question..." Click="OnNativeOpenQuestionMenuClicked" Gesture="Cmd+O"/>
+          <NativeMenuItemSeparator/>
+          <NativeMenuItem Header="Exit" Click="OnNativeExitMenuClicked" Gesture="Cmd+Q"/>
+        </NativeMenu>
+      </NativeMenuItem>
+    </NativeMenu>
+  </NativeMenu.Menu>
+
+  <Window.KeyBindings>
+    <KeyBinding Gesture="Cmd+O" Command="{Binding OpenQuestionFileCommand}"/>
+    <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenQuestionFileCommand}"/>
+  </Window.KeyBindings>
+
   <Window.Styles>
     <Style Selector="Button.tree-item">
       <Setter Property="Background" Value="Transparent"/>
@@ -106,10 +124,24 @@
   </Window.Styles>
 
   <Grid RowDefinitions="Auto, *">
-        <!-- Top Toolbar / Menu Bar -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Background="#2D2D2D" Spacing="8">
-            <TextBlock Text="Top-Bar"/>
-        </StackPanel>
+        <!-- Top Application Menu Bar (visible on Windows/Linux or non-macOS platforms) -->
+        <Border x:Name="InWindowMenuBar" Grid.Row="0" Background="#1E1E22" BorderBrush="#333333" BorderThickness="0,0,0,1" Padding="4,2">
+            <Menu Background="Transparent">
+                <MenuItem Header="_File" Foreground="#CCCCCC" FontSize="12">
+                    <MenuItem Header="_Open Question..." 
+                              Click="OnOpenQuestionMenuClicked"
+                              Command="{Binding OpenQuestionFileCommand}" 
+                              InputGesture="Ctrl+O"
+                              Foreground="#CCCCCC"/>
+                    <Separator Background="#333333"/>
+                    <MenuItem Header="_Exit" 
+                              Click="OnExitMenuClicked"
+                              Command="{Binding CloseApplicationCommand}" 
+                              InputGesture="Alt+F4"
+                              Foreground="#CCCCCC"/>
+                </MenuItem>
+            </Menu>
+        </Border>
 
         <!-- Main Body Area with Sidebar and Workspace -->
         <Grid Grid.Row="1">
