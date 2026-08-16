@@ -14,6 +14,12 @@ using STACK_HUB.Models;
 
 namespace STACK_HUB.ViewModels;
 
+public enum PrtBottomPaneTab
+{
+    FeedbackVariables,
+    Settings
+}
+
 public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 {
     public StackPrt Prt { get; }
@@ -43,7 +49,23 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(FeedbackVariablesRowHeight))]
     [NotifyPropertyChangedFor(nameof(FeedbackVariablesRowMinHeight))]
-    private bool _isFeedbackVariablesExpanded;
+    [NotifyPropertyChangedFor(nameof(IsFeedbackVariablesExpanded))]
+    [NotifyPropertyChangedFor(nameof(IsSettingsExpanded))]
+    [NotifyPropertyChangedFor(nameof(IsFeedbackVariablesTabActive))]
+    [NotifyPropertyChangedFor(nameof(IsSettingsTabActive))]
+    private bool _isBottomPaneExpanded;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsFeedbackVariablesExpanded))]
+    [NotifyPropertyChangedFor(nameof(IsSettingsExpanded))]
+    [NotifyPropertyChangedFor(nameof(IsFeedbackVariablesTabActive))]
+    [NotifyPropertyChangedFor(nameof(IsSettingsTabActive))]
+    private PrtBottomPaneTab _activeBottomPaneTab = PrtBottomPaneTab.FeedbackVariables;
+
+    public bool IsFeedbackVariablesExpanded => IsBottomPaneExpanded && ActiveBottomPaneTab == PrtBottomPaneTab.FeedbackVariables;
+    public bool IsSettingsExpanded => IsBottomPaneExpanded && ActiveBottomPaneTab == PrtBottomPaneTab.Settings;
+    public bool IsFeedbackVariablesTabActive => ActiveBottomPaneTab == PrtBottomPaneTab.FeedbackVariables;
+    public bool IsSettingsTabActive => ActiveBottomPaneTab == PrtBottomPaneTab.Settings;
 
     public GridLength NodeEditorColumnWidth
     {
@@ -61,7 +83,7 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 
     public GridLength FeedbackVariablesRowHeight
     {
-        get => IsFeedbackVariablesExpanded ? new GridLength(FeedbackVariablesHeight, GridUnitType.Pixel) : new GridLength(0, GridUnitType.Pixel);
+        get => IsBottomPaneExpanded ? new GridLength(FeedbackVariablesHeight, GridUnitType.Pixel) : new GridLength(0, GridUnitType.Pixel);
         set
         {
             if (value.IsAbsolute && value.Value > 0)
@@ -71,13 +93,52 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
         }
     }
 
-    public double FeedbackVariablesRowMinHeight => IsFeedbackVariablesExpanded ? 120.0 : 0.0;
+    public double FeedbackVariablesRowMinHeight => IsBottomPaneExpanded ? 120.0 : 0.0;
 
     public bool HasInitiallyCentered { get; set; }
 
     public ObservableCollection<StackPrtNode> Nodes => Prt.Nodes;
     public ObservableCollection<PrtGraphNodeViewModel> GraphNodes { get; } = new();
     public ObservableCollection<PrtGraphWireViewModel> GraphWires { get; } = new();
+
+    public static List<string> AvailableFeedbackStyles { get; } = new()
+    {
+        "Formativ", "Standard", "Kompakt", "Only Symbol"
+    };
+
+    [ObservableProperty]
+    private string _editingPrtValue = "1.0";
+
+    [ObservableProperty]
+    private string? _prtValueValidationError;
+
+    partial void OnEditingPrtValueChanged(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            PrtValueValidationError = "Wert darf nicht leer sein.";
+            return;
+        }
+
+        string normalized = value.Trim().Replace(',', '.');
+        if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedVal))
+        {
+            PrtValueValidationError = "Ungültige Zahl.";
+            return;
+        }
+
+        if (parsedVal <= 0)
+        {
+            PrtValueValidationError = "Wert muss eine positive Zahl sein (> 0).";
+            return;
+        }
+
+        PrtValueValidationError = null;
+        if (Math.Abs(Prt.Value - parsedVal) > 0.0001)
+        {
+            Prt.Value = parsedVal;
+        }
+    }
 
     public static List<string> AvailableAnswerTests { get; } = new()
     {
@@ -124,6 +185,19 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
     {
         Prt = prt;
         SelectedNode = null;
+
+        EditingPrtValue = Prt.Value.ToString("0.##", CultureInfo.InvariantCulture);
+        Prt.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(StackPrt.Value))
+            {
+                string formatted = Prt.Value.ToString("0.##", CultureInfo.InvariantCulture);
+                if (EditingPrtValue != formatted && PrtValueValidationError == null)
+                {
+                    EditingPrtValue = formatted;
+                }
+            }
+        };
 
         FeedbackVariablesEditor = new MaximaEditorViewModel(Prt.FeedbackVariables);
         FeedbackVariablesEditor.PropertyChanged += (s, e) =>
@@ -780,7 +854,52 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
     }
 
     [RelayCommand]
-    private void ToggleFeedbackVariables() => IsFeedbackVariablesExpanded = !IsFeedbackVariablesExpanded;
+    public void ToggleFeedbackVariables()
+    {
+        if (IsBottomPaneExpanded && ActiveBottomPaneTab == PrtBottomPaneTab.FeedbackVariables)
+        {
+            IsBottomPaneExpanded = false;
+        }
+        else
+        {
+            ActiveBottomPaneTab = PrtBottomPaneTab.FeedbackVariables;
+            IsBottomPaneExpanded = true;
+        }
+    }
+
+    [RelayCommand]
+    public void ToggleSettings()
+    {
+        if (IsBottomPaneExpanded && ActiveBottomPaneTab == PrtBottomPaneTab.Settings)
+        {
+            IsBottomPaneExpanded = false;
+        }
+        else
+        {
+            ActiveBottomPaneTab = PrtBottomPaneTab.Settings;
+            IsBottomPaneExpanded = true;
+        }
+    }
+
+    [RelayCommand]
+    public void SelectFeedbackVariablesTab()
+    {
+        ActiveBottomPaneTab = PrtBottomPaneTab.FeedbackVariables;
+        IsBottomPaneExpanded = true;
+    }
+
+    [RelayCommand]
+    public void SelectSettingsTab()
+    {
+        ActiveBottomPaneTab = PrtBottomPaneTab.Settings;
+        IsBottomPaneExpanded = true;
+    }
+
+    [RelayCommand]
+    public void CloseBottomPane()
+    {
+        IsBottomPaneExpanded = false;
+    }
 
     [RelayCommand]
     private void CloseNodeEditor() => SelectedNode = null;

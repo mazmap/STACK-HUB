@@ -182,9 +182,12 @@ public partial class StackPrt : ObservableObject
     
     [ObservableProperty]
     private bool _autoCap;
+
+    [ObservableProperty]
+    private bool _autosimplify = true;
     
     [ObservableProperty]
-    private string _feedbackStyle = "Formative"; // Formative, Summative
+    private string _feedbackStyle = "Formativ"; // "Formativ", "Standard", "Kompakt", "Only Symbol"
     
     [ObservableProperty]
     private string _feedbackVariables = "/* Feedback-Variablen hier definieren */";
