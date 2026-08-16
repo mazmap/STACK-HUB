@@ -125,87 +125,170 @@
                             <StackPanel Width="220">
                                 
                                 <!-- Node Card Container with Selection Highlight Classes & Right-Click Context Menu -->
-                                <Border Width="220" 
-                                        Background="#25262A" 
-                                        Classes.selected="{Binding IsSelected}"
-                                        SizeChanged="OnNodeCardSizeChanged"
-                                        PointerPressed="OnNodeCardPointerPressed"
-                                        PointerMoved="OnNodeCardPointerMoved"
-                                        PointerReleased="OnNodeCardPointerReleased">
-                                    <Border.ContextMenu>
+                                <Grid Width="220"
+                                      SizeChanged="OnNodeCardSizeChanged"
+                                      PointerPressed="OnNodeCardPointerPressed"
+                                      PointerMoved="OnNodeCardPointerMoved"
+                                      PointerReleased="OnNodeCardPointerReleased">
+                                    <Grid.ContextMenu>
                                         <ContextMenu Background="#25262A" BorderBrush="#3D3E42" BorderThickness="1">
                                             <MenuItem Header="Node bearbeiten" Command="{Binding $parent[UserControl].((vm:PrtEditorViewModel)DataContext).SelectNodeCommand}" CommandParameter="{Binding Node}" Foreground="#CCCCCC" FontSize="12"/>
                                             <MenuItem Header="Node löschen" Command="{Binding $parent[UserControl].((vm:PrtEditorViewModel)DataContext).RemoveNodeCommand}" CommandParameter="{Binding Node}" Foreground="#F92672" FontSize="12"/>
                                         </ContextMenu>
-                                    </Border.ContextMenu>
+                                    </Grid.ContextMenu>
 
-                                    <Border.Styles>
-                                        <Style Selector="Border">
-                                            <Setter Property="BorderBrush" Value="#45464A" />
-                                            <Setter Property="BorderThickness" Value="1" />
-                                            <Setter Property="CornerRadius" Value="3" />
-                                        </Style>
-                                        <Style Selector="Border.selected">
-                                            <Setter Property="BorderBrush" Value="#007ACC" />
-                                            <Setter Property="BorderThickness" Value="2" />
-                                        </Style>
-                                    </Border.Styles>
-                                     <Grid RowDefinitions="Auto, Auto, Auto, Auto">
-                                         <!-- Top Input Port Dot -->
-                                         <Ellipse Grid.Row="0" Width="10" Height="10" Fill="#569CD6" HorizontalAlignment="Center" Margin="0,-5,0,-5" ZIndex="10" ToolTip.Tip="Eingangs-Port"/>
-                                         
-                                         <!-- Header Row: Node Number + Description with Selection Highlight -->
-                                         <Border Grid.Row="1" 
-                                                 Classes.selected="{Binding IsSelected}"
-                                                 Padding="6,4" 
-                                                 BorderBrush="#3D3E42" 
-                                                 BorderThickness="0,0,0,1">
-                                             <Border.Styles>
-                                                 <Style Selector="Border">
-                                                     <Setter Property="Background" Value="#2E2F34" />
-                                                 </Style>
-                                                 <Style Selector="Border.selected">
-                                                     <Setter Property="Background" Value="#007ACC" />
-                                                 </Style>
-                                             </Border.Styles>
-                                             
-                                             <TextBlock Text="{Binding Node.Name}" Foreground="#FFFFFF" FontSize="12" FontWeight="SemiBold"/>
-                                         </Border>
-                                         
-                                         <!-- Monospace Maxima Expression Sub-box -->
-                                         <Border Grid.Row="2" Padding="8,6" Background="#1E1E22">
-                                             <TextBlock Text="{Binding Node.MaximaCheck}" FontFamily="Iosevka, Cascadia Code, Consolas, monospace" FontSize="12" Foreground="#DCDCDC" TextTrimming="CharacterEllipsis"/>
-                                         </Border>
+                                    <!-- Main Card Surface -->
+                                    <Border Background="#25262A" 
+                                            CornerRadius="3"
+                                            ClipToBounds="True"
+                                            BorderBrush="#45464A"
+                                            BorderThickness="1">
 
-                                         <!-- Bottom Output Ports Row (WAHR = Green, FALSCH = Red) -->
-                                         <Grid Grid.Row="3" ColumnDefinitions="*, *" Margin="0,2,0,-5" ZIndex="10">
-                                             <Ellipse Grid.Column="0" 
-                                                      Width="10" 
-                                                      Height="10" 
-                                                      Fill="#4EC9B0" 
-                                                      HorizontalAlignment="Center" 
-                                                      Cursor="Hand"
-                                                      PointerPressed="OnTruePortPointerPressed"
-                                                      ToolTip.Tip="WAHR-Zweig verbinden (Ziehen um zu verbinden)"/>
-                                                      
-                                             <Ellipse Grid.Column="1" 
-                                                      Width="10" 
-                                                      Height="10" 
-                                                      Fill="#F92672" 
-                                                      HorizontalAlignment="Center" 
-                                                      Cursor="Hand"
-                                                      PointerPressed="OnFalsePortPointerPressed"
-                                                      ToolTip.Tip="FALSCH-Zweig verbinden (Ziehen um zu verbinden)"/>
-                                         </Grid>
-                                     </Grid>
-                                </Border>
+                                        <Panel>
+                                            <!-- FORMAT A: When Description IS provided (2 rows) -->
+                                            <StackPanel IsVisible="{Binding Node.HasDescription}">
+                                                <!-- Header Row: Left NodeId Badge + Right Description with Selection Highlight -->
+                                                <Border Classes.selected="{Binding IsSelected}"
+                                                        BorderBrush="#3D3E42" 
+                                                        BorderThickness="0,0,0,1">
+                                                    <Border.Styles>
+                                                        <Style Selector="Border">
+                                                            <Setter Property="Background" Value="#2E2F34" />
+                                                        </Style>
+                                                        <Style Selector="Border.selected">
+                                                            <Setter Property="Background" Value="#264F78" />
+                                                        </Style>
+                                                    </Border.Styles>
+                                                    
+                                                    <Grid ColumnDefinitions="Auto, *">
+                                                        <!-- Left Node Id Badge -->
+                                                        <Border Grid.Column="0" 
+                                                                Background="#1E1E22" 
+                                                                Padding="8,4" 
+                                                                MinWidth="26"
+                                                                BorderBrush="#3D3E42" 
+                                                                BorderThickness="0,0,1,0">
+                                                            <TextBlock Text="{Binding Node.NodeId}" 
+                                                                       Foreground="#FFFFFF" 
+                                                                       FontSize="11" 
+                                                                       FontWeight="Bold" 
+                                                                       HorizontalAlignment="Center" 
+                                                                       VerticalAlignment="Center"/>
+                                                        </Border>
+                                                        
+                                                        <!-- Right Description Text -->
+                                                        <TextBlock Grid.Column="1" 
+                                                                   Text="{Binding Node.Description}" 
+                                                                   Foreground="#FFFFFF" 
+                                                                   FontSize="12" 
+                                                                   FontWeight="SemiBold" 
+                                                                   Margin="8,4" 
+                                                                   VerticalAlignment="Center" 
+                                                                   TextTrimming="CharacterEllipsis"/>
+                                                    </Grid>
+                                                </Border>
+                                                
+                                                <!-- Monospace Maxima Expression Sub-box -->
+                                                <Border Padding="8,6" Background="#1E1E22">
+                                                    <TextBlock Text="{Binding Node.MaximaCheck}" 
+                                                               FontFamily="Iosevka, Cascadia Code, Consolas, monospace" 
+                                                               FontSize="11" 
+                                                               Foreground="#DCDCDC" 
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                </Border>
+                                            </StackPanel>
 
-                                <TextBlock Text="Gestrichelt = Feedback unterdrückt" 
-                                           IsVisible="{Binding Node.Quiet}" 
-                                           FontSize="11" 
-                                           FontStyle="Italic" 
-                                           Foreground="#888888" 
-                                           Margin="0,4,0,0"/>
+                                            <!-- FORMAT B: When NO Description is provided (Single compact row as in Mockup Node 3) -->
+                                            <Border IsVisible="{Binding !Node.HasDescription}">
+                                                <Grid ColumnDefinitions="Auto, *">
+                                                    <!-- Left Node Id Badge -->
+                                                    <Border Grid.Column="0" 
+                                                            Background="#1E1E22" 
+                                                            Padding="8,6" 
+                                                            MinWidth="26"
+                                                            BorderBrush="#3D3E42" 
+                                                            BorderThickness="0,0,1,0">
+                                                        <TextBlock Text="{Binding Node.NodeId}" 
+                                                                   Foreground="#FFFFFF" 
+                                                                   FontSize="11" 
+                                                                   FontWeight="Bold" 
+                                                                   HorizontalAlignment="Center" 
+                                                                   VerticalAlignment="Center"/>
+                                                    </Border>
+                                                    
+                                                    <!-- Right Monospace Maxima Expression -->
+                                                    <Border Grid.Column="1" Padding="8,6" Background="#1E1E22">
+                                                        <TextBlock Text="{Binding Node.MaximaCheck}" 
+                                                                   FontFamily="Iosevka, Cascadia Code, Consolas, monospace" 
+                                                                   FontSize="11" 
+                                                                   Foreground="#DCDCDC" 
+                                                                   VerticalAlignment="Center"
+                                                                   TextTrimming="CharacterEllipsis"/>
+                                                    </Border>
+                                                </Grid>
+                                            </Border>
+                                        </Panel>
+                                    </Border>
+
+                                    <!-- Top Input Port Dot (Full Unclipped Circle) -->
+                                    <Ellipse Width="10" 
+                                             Height="10" 
+                                             Fill="#569CD6" 
+                                             Stroke="#18181A"
+                                             StrokeThickness="1.5"
+                                             HorizontalAlignment="Center" 
+                                             VerticalAlignment="Top" 
+                                             Margin="0,-5,0,0" 
+                                             ZIndex="20" 
+                                             ToolTip.Tip="Eingangs-Port"/>
+
+                                    <!-- Bottom Output Ports Row (Full Unclipped Circles) -->
+                                    <Grid ColumnDefinitions="*, *" 
+                                          VerticalAlignment="Bottom" 
+                                          Margin="0,0,0,-5" 
+                                          ZIndex="20">
+                                        <!-- WAHR Port Dot -->
+                                        <Ellipse Grid.Column="0" 
+                                                 Width="10" 
+                                                 Height="10" 
+                                                 Fill="#4EC9B0" 
+                                                 Stroke="#18181A"
+                                                 StrokeThickness="1.5"
+                                                 HorizontalAlignment="Center" 
+                                                 Cursor="Hand"
+                                                 PointerPressed="OnTruePortPointerPressed"
+                                                 ToolTip.Tip="WAHR-Zweig verbinden (Ziehen um zu verbinden)"/>
+                                                 
+                                        <!-- FALSCH Port Dot -->
+                                        <Ellipse Grid.Column="1" 
+                                                 Width="10" 
+                                                 Height="10" 
+                                                 Fill="#F92672" 
+                                                 Stroke="#18181A"
+                                                 StrokeThickness="1.5"
+                                                 HorizontalAlignment="Center" 
+                                                 Cursor="Hand"
+                                                 PointerPressed="OnFalsePortPointerPressed"
+                                                 ToolTip.Tip="FALSCH-Zweig verbinden (Ziehen um zu verbinden)"/>
+                                    </Grid>
+
+                                    <!-- Solid Border when Selected -->
+                                    <Rectangle Stroke="#007ACC" 
+                                               StrokeThickness="2" 
+                                               RadiusX="3" 
+                                               RadiusY="3" 
+                                               IsHitTestVisible="False" 
+                                               IsVisible="{Binding IsSelected}"/>
+
+                                    <!-- Dashed Border when Quiet (Feedback unterdrückt) and Not Selected -->
+                                    <Rectangle Stroke="#777777" 
+                                               StrokeThickness="1.5" 
+                                               StrokeDashArray="4,4" 
+                                               RadiusX="3" 
+                                               RadiusY="3" 
+                                               IsHitTestVisible="False" 
+                                               IsVisible="{Binding Node.Quiet}"/>
+                                </Grid>
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -246,6 +329,7 @@
         <!-- Expanded Bottom Pane -->
         <Grid VerticalAlignment="Bottom" 
               HorizontalAlignment="Stretch"
+              Margin="{Binding FeedbackVariablesMargin}"
               IsVisible="{Binding IsFeedbackVariablesExpanded}">
             <Border Height="{Binding FeedbackVariablesHeight}" 
                     x:Name="BottomPaneBorder"
@@ -279,7 +363,9 @@
         <!-- ============================================================ -->
         <!-- LAYER 3: RIGHT NODE EDITOR OVERLAY PANE                      -->
         <!-- ============================================================ -->
-        <Grid HorizontalAlignment="Right" VerticalAlignment="Stretch" IsVisible="{Binding SelectedNode, Converter={x:Static ObjectConverters.IsNotNull}}">
+        <Grid HorizontalAlignment="Right" 
+              VerticalAlignment="Stretch" 
+              IsVisible="{Binding SelectedNode, Converter={x:Static ObjectConverters.IsNotNull}}">
             <Border Width="{Binding NodeEditorWidth}" 
                     Background="#1E1E22" 
                     BorderBrush="#333333" 
@@ -309,12 +395,30 @@
                             <StackPanel Spacing="12" Margin="14,14,14,100">
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="Node Id" Foreground="#AAAAAA" FontSize="11"/>
-                                    <TextBox Text="{Binding SelectedNode.Id, Mode=OneWay}" IsReadOnly="True" Background="#18181A" Padding="6,4"/>
+                                    <TextBox Text="{Binding EditingNodeId, Mode=TwoWay}" 
+                                             Background="#18181A" 
+                                             Padding="6,4"
+                                             Classes.hasError="{Binding NodeIdValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                        <TextBox.Styles>
+                                            <Style Selector="TextBox.hasError">
+                                                <Setter Property="BorderBrush" Value="#F92672"/>
+                                                <Setter Property="BorderThickness" Value="1.5"/>
+                                            </Style>
+                                        </TextBox.Styles>
+                                    </TextBox>
+
+                                    <!-- Validation Notification Message -->
+                                    <TextBlock Text="{Binding NodeIdValidationError}" 
+                                               Foreground="#F92672" 
+                                               FontSize="11" 
+                                               FontStyle="Italic"
+                                               TextWrapping="Wrap"
+                                               IsVisible="{Binding NodeIdValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                                 </StackPanel>
 
                                 <StackPanel Spacing="4">
                                     <TextBlock Text="Beschreibung" Foreground="#AAAAAA" FontSize="11"/>
-                                    <TextBox Text="{Binding SelectedNode.Name, Mode=TwoWay}" Padding="6,4"/>
+                                    <TextBox Text="{Binding SelectedNode.Description, Mode=TwoWay}" Padding="6,4"/>
                                 </StackPanel>
 
                                 <StackPanel Spacing="4">
@@ -352,12 +456,44 @@
                                     <Grid ColumnDefinitions="*, *">
                                         <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,4,0">
                                             <TextBlock Text="Score" Foreground="#AAAAAA" FontSize="11"/>
-                                            <NumericUpDown Value="{Binding SelectedNode.ScoreTrue, Mode=TwoWay}" Increment="0.5" Minimum="0"/>
+                                            <TextBox Text="{Binding EditingScoreTrue, Mode=TwoWay}" 
+                                                     Background="#18181A" 
+                                                     Padding="6,4"
+                                                     Classes.hasError="{Binding ScoreTrueValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                <TextBox.Styles>
+                                                    <Style Selector="TextBox.hasError">
+                                                        <Setter Property="BorderBrush" Value="#F92672"/>
+                                                        <Setter Property="BorderThickness" Value="1.5"/>
+                                                    </Style>
+                                                </TextBox.Styles>
+                                            </TextBox>
+                                            <TextBlock Text="{Binding ScoreTrueValidationError}" 
+                                                       Foreground="#F92672" 
+                                                       FontSize="11" 
+                                                       FontStyle="Italic"
+                                                       TextWrapping="Wrap"
+                                                       IsVisible="{Binding ScoreTrueValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="1" Spacing="4" Margin="4,0,0,0">
                                             <TextBlock Text="Abzüge" Foreground="#AAAAAA" FontSize="11"/>
-                                            <NumericUpDown Value="{Binding SelectedNode.PenaltyTrue, Mode=TwoWay}" Increment="0.1" Minimum="0"/>
+                                            <TextBox Text="{Binding EditingPenaltyTrue, Mode=TwoWay}" 
+                                                     Background="#18181A" 
+                                                     Padding="6,4"
+                                                     Classes.hasError="{Binding PenaltyTrueValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                <TextBox.Styles>
+                                                    <Style Selector="TextBox.hasError">
+                                                        <Setter Property="BorderBrush" Value="#F92672"/>
+                                                        <Setter Property="BorderThickness" Value="1.5"/>
+                                                    </Style>
+                                                </TextBox.Styles>
+                                            </TextBox>
+                                            <TextBlock Text="{Binding PenaltyTrueValidationError}" 
+                                                       Foreground="#F92672" 
+                                                       FontSize="11" 
+                                                       FontStyle="Italic"
+                                                       TextWrapping="Wrap"
+                                                       IsVisible="{Binding PenaltyTrueValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                                         </StackPanel>
                                     </Grid>
 
@@ -385,12 +521,44 @@
                                     <Grid ColumnDefinitions="*, *">
                                         <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,4,0">
                                             <TextBlock Text="Score" Foreground="#AAAAAA" FontSize="11"/>
-                                            <NumericUpDown Value="{Binding SelectedNode.ScoreFalse, Mode=TwoWay}" Increment="0.5" Minimum="0"/>
+                                            <TextBox Text="{Binding EditingScoreFalse, Mode=TwoWay}" 
+                                                     Background="#18181A" 
+                                                     Padding="6,4"
+                                                     Classes.hasError="{Binding ScoreFalseValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                <TextBox.Styles>
+                                                    <Style Selector="TextBox.hasError">
+                                                        <Setter Property="BorderBrush" Value="#F92672"/>
+                                                        <Setter Property="BorderThickness" Value="1.5"/>
+                                                    </Style>
+                                                </TextBox.Styles>
+                                            </TextBox>
+                                            <TextBlock Text="{Binding ScoreFalseValidationError}" 
+                                                       Foreground="#F92672" 
+                                                       FontSize="11" 
+                                                       FontStyle="Italic"
+                                                       TextWrapping="Wrap"
+                                                       IsVisible="{Binding ScoreFalseValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                                         </StackPanel>
 
                                         <StackPanel Grid.Column="1" Spacing="4" Margin="4,0,0,0">
                                             <TextBlock Text="Abzüge" Foreground="#AAAAAA" FontSize="11"/>
-                                            <NumericUpDown Value="{Binding SelectedNode.PenaltyFalse, Mode=TwoWay}" Increment="0.1" Minimum="0"/>
+                                            <TextBox Text="{Binding EditingPenaltyFalse, Mode=TwoWay}" 
+                                                     Background="#18181A" 
+                                                     Padding="6,4"
+                                                     Classes.hasError="{Binding PenaltyFalseValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                                <TextBox.Styles>
+                                                    <Style Selector="TextBox.hasError">
+                                                        <Setter Property="BorderBrush" Value="#F92672"/>
+                                                        <Setter Property="BorderThickness" Value="1.5"/>
+                                                    </Style>
+                                                </TextBox.Styles>
+                                            </TextBox>
+                                            <TextBlock Text="{Binding PenaltyFalseValidationError}" 
+                                                       Foreground="#F92672" 
+                                                       FontSize="11" 
+                                                       FontStyle="Italic"
+                                                       TextWrapping="Wrap"
+                                                       IsVisible="{Binding PenaltyFalseValidationError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
                                         </StackPanel>
                                     </Grid>
 

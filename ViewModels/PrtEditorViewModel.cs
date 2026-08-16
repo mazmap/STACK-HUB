@@ -30,6 +30,7 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
     private double _panY = 100.0;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FeedbackVariablesMargin))]
     private double _nodeEditorWidth = 340.0;
 
     [ObservableProperty]
@@ -37,6 +38,10 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 
     [ObservableProperty]
     private bool _isFeedbackVariablesExpanded;
+
+    public Thickness FeedbackVariablesMargin => SelectedNode != null
+        ? new Thickness(0, 0, NodeEditorWidth, 0)
+        : new Thickness(0, 0, 0, 0);
 
     public bool HasInitiallyCentered { get; set; }
 
@@ -102,6 +107,7 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
         Prt.Nodes.CollectionChanged += OnNodesCollectionChanged;
         foreach (var node in Prt.Nodes)
         {
+            node.ParentPrt = Prt;
             node.PropertyChanged += OnNodePropertyChanged;
         }
 
@@ -150,6 +156,185 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
     }
 
     [ObservableProperty]
+    private string _editingNodeId = string.Empty;
+
+    [ObservableProperty]
+    private string? _nodeIdValidationError;
+
+    partial void OnEditingNodeIdChanged(string value)
+    {
+        if (SelectedNode == null)
+        {
+            NodeIdValidationError = null;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            NodeIdValidationError = "Node Id must be a whole number starting from 1 (e.g. 1, 2, 3...).";
+            return;
+        }
+
+        string trimmed = value.Trim();
+        if (!int.TryParse(trimmed, out int parsedNum) || parsedNum < 1)
+        {
+            NodeIdValidationError = "Node Id must be a whole number starting from 1 (e.g. 1, 2, 3...).";
+            return;
+        }
+
+        string canonical = parsedNum.ToString();
+
+        if (Prt.Nodes.Any(n => n.Id != SelectedNode.Id && n.NodeId == canonical))
+        {
+            NodeIdValidationError = $"A node with id '{canonical}' already exists.";
+            return;
+        }
+
+        // Successfully validated: clear error and update underlying model
+        NodeIdValidationError = null;
+        if (SelectedNode.NodeId != canonical)
+        {
+            SelectedNode.NodeId = canonical;
+        }
+    }
+
+    [ObservableProperty]
+    private string _editingScoreTrue = "1.0";
+
+    [ObservableProperty]
+    private string _editingPenaltyTrue = "0.0";
+
+    [ObservableProperty]
+    private string _editingScoreFalse = "0.0";
+
+    [ObservableProperty]
+    private string _editingPenaltyFalse = "0.1";
+
+    [ObservableProperty]
+    private string? _scoreTrueValidationError;
+
+    [ObservableProperty]
+    private string? _penaltyTrueValidationError;
+
+    [ObservableProperty]
+    private string? _scoreFalseValidationError;
+
+    [ObservableProperty]
+    private string? _penaltyFalseValidationError;
+
+    partial void OnEditingScoreTrueChanged(string value)
+    {
+        if (SelectedNode == null)
+        {
+            ScoreTrueValidationError = null;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            ScoreTrueValidationError = "Score must be between 0 and 1 (e.g. 1.0, 0.5, 0).";
+            return;
+        }
+
+        string normalized = value.Trim().Replace(',', '.');
+        if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedVal) || parsedVal < 0.0 || parsedVal > 1.0)
+        {
+            ScoreTrueValidationError = "Score must be between 0 and 1 (e.g. 1.0, 0.5, 0).";
+            return;
+        }
+
+        ScoreTrueValidationError = null;
+        if (Math.Abs(SelectedNode.ScoreTrue - parsedVal) > 0.0001)
+        {
+            SelectedNode.ScoreTrue = parsedVal;
+        }
+    }
+
+    partial void OnEditingPenaltyTrueChanged(string value)
+    {
+        if (SelectedNode == null)
+        {
+            PenaltyTrueValidationError = null;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            PenaltyTrueValidationError = "Penalty must be between 0 and 1 (e.g. 0.1, 0).";
+            return;
+        }
+
+        string normalized = value.Trim().Replace(',', '.');
+        if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedVal) || parsedVal < 0.0 || parsedVal > 1.0)
+        {
+            PenaltyTrueValidationError = "Penalty must be between 0 and 1 (e.g. 0.1, 0).";
+            return;
+        }
+
+        PenaltyTrueValidationError = null;
+        if (Math.Abs(SelectedNode.PenaltyTrue - parsedVal) > 0.0001)
+        {
+            SelectedNode.PenaltyTrue = parsedVal;
+        }
+    }
+
+    partial void OnEditingScoreFalseChanged(string value)
+    {
+        if (SelectedNode == null)
+        {
+            ScoreFalseValidationError = null;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            ScoreFalseValidationError = "Score must be between 0 and 1 (e.g. 1.0, 0.5, 0).";
+            return;
+        }
+
+        string normalized = value.Trim().Replace(',', '.');
+        if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedVal) || parsedVal < 0.0 || parsedVal > 1.0)
+        {
+            ScoreFalseValidationError = "Score must be between 0 and 1 (e.g. 1.0, 0.5, 0).";
+            return;
+        }
+
+        ScoreFalseValidationError = null;
+        if (Math.Abs(SelectedNode.ScoreFalse - parsedVal) > 0.0001)
+        {
+            SelectedNode.ScoreFalse = parsedVal;
+        }
+    }
+
+    partial void OnEditingPenaltyFalseChanged(string value)
+    {
+        if (SelectedNode == null)
+        {
+            PenaltyFalseValidationError = null;
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            PenaltyFalseValidationError = "Penalty must be between 0 and 1 (e.g. 0.1, 0).";
+            return;
+        }
+
+        string normalized = value.Trim().Replace(',', '.');
+        if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedVal) || parsedVal < 0.0 || parsedVal > 1.0)
+        {
+            PenaltyFalseValidationError = "Penalty must be between 0 and 1 (e.g. 0.1, 0).";
+            return;
+        }
+
+        PenaltyFalseValidationError = null;
+        if (Math.Abs(SelectedNode.PenaltyFalse - parsedVal) > 0.0001)
+        {
+            SelectedNode.PenaltyFalse = parsedVal;
+        }
+    }
+
+    [ObservableProperty]
     private CasTextEditorViewModel? _trueFeedbackEditor;
 
     [ObservableProperty]
@@ -157,6 +342,19 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 
     partial void OnSelectedNodeChanged(StackPrtNode? value)
     {
+        NodeIdValidationError = null;
+        EditingNodeId = value?.NodeId ?? string.Empty;
+        ScoreTrueValidationError = null;
+        PenaltyTrueValidationError = null;
+        ScoreFalseValidationError = null;
+        PenaltyFalseValidationError = null;
+        OnPropertyChanged(nameof(FeedbackVariablesMargin));
+
+        EditingScoreTrue = value != null ? value.ScoreTrue.ToString("0.##", CultureInfo.InvariantCulture) : "1.0";
+        EditingPenaltyTrue = value != null ? value.PenaltyTrue.ToString("0.##", CultureInfo.InvariantCulture) : "0.0";
+        EditingScoreFalse = value != null ? value.ScoreFalse.ToString("0.##", CultureInfo.InvariantCulture) : "0.0";
+        EditingPenaltyFalse = value != null ? value.PenaltyFalse.ToString("0.##", CultureInfo.InvariantCulture) : "0.1";
+
         if (value == null)
         {
             TrueFeedbackEditor = null;
@@ -217,9 +415,69 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 
     private void OnNodePropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(StackPrtNode.Name))
+        if (e.PropertyName == nameof(StackPrtNode.NodeId))
+        {
+            if (SelectedNode != null && sender == SelectedNode && EditingNodeId != SelectedNode.NodeId)
+            {
+                EditingNodeId = SelectedNode.NodeId;
+                NodeIdValidationError = null;
+            }
+            UpdateAvailableNodeNames();
+            UpdateWires();
+        }
+        else if (e.PropertyName == nameof(StackPrtNode.Name) ||
+                 e.PropertyName == nameof(StackPrtNode.DisplayName) ||
+                 e.PropertyName == nameof(StackPrtNode.Description))
         {
             UpdateAvailableNodeNames();
+            UpdateWires();
+        }
+        else if (e.PropertyName == nameof(StackPrtNode.ScoreTrue))
+        {
+            if (SelectedNode != null && sender == SelectedNode)
+            {
+                string strVal = SelectedNode.ScoreTrue.ToString("0.##", CultureInfo.InvariantCulture);
+                if (EditingScoreTrue != strVal && (double.TryParse(EditingScoreTrue.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed) && Math.Abs(parsed - SelectedNode.ScoreTrue) > 0.0001))
+                {
+                    EditingScoreTrue = strVal;
+                }
+            }
+            UpdateWires();
+        }
+        else if (e.PropertyName == nameof(StackPrtNode.PenaltyTrue))
+        {
+            if (SelectedNode != null && sender == SelectedNode)
+            {
+                string strVal = SelectedNode.PenaltyTrue.ToString("0.##", CultureInfo.InvariantCulture);
+                if (EditingPenaltyTrue != strVal && (double.TryParse(EditingPenaltyTrue.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed) && Math.Abs(parsed - SelectedNode.PenaltyTrue) > 0.0001))
+                {
+                    EditingPenaltyTrue = strVal;
+                }
+            }
+            UpdateWires();
+        }
+        else if (e.PropertyName == nameof(StackPrtNode.ScoreFalse))
+        {
+            if (SelectedNode != null && sender == SelectedNode)
+            {
+                string strVal = SelectedNode.ScoreFalse.ToString("0.##", CultureInfo.InvariantCulture);
+                if (EditingScoreFalse != strVal && (double.TryParse(EditingScoreFalse.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed) && Math.Abs(parsed - SelectedNode.ScoreFalse) > 0.0001))
+                {
+                    EditingScoreFalse = strVal;
+                }
+            }
+            UpdateWires();
+        }
+        else if (e.PropertyName == nameof(StackPrtNode.PenaltyFalse))
+        {
+            if (SelectedNode != null && sender == SelectedNode)
+            {
+                string strVal = SelectedNode.PenaltyFalse.ToString("0.##", CultureInfo.InvariantCulture);
+                if (EditingPenaltyFalse != strVal && (double.TryParse(EditingPenaltyFalse.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed) && Math.Abs(parsed - SelectedNode.PenaltyFalse) > 0.0001))
+                {
+                    EditingPenaltyFalse = strVal;
+                }
+            }
             UpdateWires();
         }
         else if (e.PropertyName == nameof(StackPrtNode.NextNodeTrue) ||
@@ -228,12 +486,9 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
                  e.PropertyName == nameof(StackPrtNode.DisplayNextNodeFalse) ||
                  e.PropertyName == nameof(StackPrtNode.ScoreModeTrue) ||
                  e.PropertyName == nameof(StackPrtNode.ScoreModeFalse) ||
-                 e.PropertyName == nameof(StackPrtNode.ScoreTrue) ||
-                 e.PropertyName == nameof(StackPrtNode.PenaltyTrue) ||
-                 e.PropertyName == nameof(StackPrtNode.ScoreFalse) ||
-                 e.PropertyName == nameof(StackPrtNode.PenaltyFalse) ||
                  e.PropertyName == nameof(StackPrtNode.NodeScore) ||
-                 e.PropertyName == nameof(StackPrtNode.Penalty))
+                 e.PropertyName == nameof(StackPrtNode.Penalty) ||
+                 e.PropertyName == nameof(StackPrtNode.Quiet))
         {
             UpdateWires();
         }
@@ -253,9 +508,10 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
         var currentList = new List<string> { "Keine" };
         foreach (var node in Prt.Nodes)
         {
-            if (!currentList.Contains(node.Name))
+            string item = $"Node {node.NodeId}";
+            if (!currentList.Contains(item))
             {
-                currentList.Add(node.Name);
+                currentList.Add(item);
             }
         }
 
@@ -462,14 +718,22 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 
     private StackPrtNode? FindNodeModel(string target)
     {
-        if (string.IsNullOrEmpty(target) || target == "-1") return null;
+        if (string.IsNullOrEmpty(target) || target == "-1" || target.Equals("Keine", StringComparison.OrdinalIgnoreCase)) return null;
+
+        string normalized = target.StartsWith("Node ", StringComparison.OrdinalIgnoreCase) 
+            ? target.Substring(5).Trim() 
+            : target.Trim();
+
+        var byNodeId = Prt.Nodes.FirstOrDefault(n => n.NodeId.Equals(normalized, StringComparison.OrdinalIgnoreCase));
+        if (byNodeId != null) return byNodeId;
+
         var byId = Prt.Nodes.FirstOrDefault(n => n.Id == target);
         if (byId != null) return byId;
 
-        var byName = Prt.Nodes.FirstOrDefault(n => n.Name.Equals(target, StringComparison.OrdinalIgnoreCase) || n.Name.Equals($"Node {target}", StringComparison.OrdinalIgnoreCase));
-        if (byName != null) return byName;
+        var byDesc = Prt.Nodes.FirstOrDefault(n => n.Description.Equals(target, StringComparison.OrdinalIgnoreCase));
+        if (byDesc != null) return byDesc;
 
-        if (int.TryParse(target, out int index) && index >= 1 && index <= Prt.Nodes.Count)
+        if (int.TryParse(normalized, out int index) && index >= 1 && index <= Prt.Nodes.Count)
         {
             return Prt.Nodes[index - 1];
         }
@@ -572,7 +836,7 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
 
     public void ConnectBranch(StackPrtNode sourceNode, string branchType, StackPrtNode? targetNode)
     {
-        string targetValue = targetNode != null ? targetNode.Name : "-1";
+        string targetValue = targetNode != null ? targetNode.NodeId : "-1";
         if (branchType == "True") sourceNode.NextNodeTrue = targetValue;
         else if (branchType == "False") sourceNode.NextNodeFalse = targetValue;
         UpdateWires();
@@ -584,16 +848,15 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
     public void AddNodeAtPosition(double sceneX, double sceneY)
     {
         int nodeIndex = 1;
-        string candidateName;
-        do
+        while (Prt.Nodes.Any(n => n.NodeId == nodeIndex.ToString()))
         {
-            candidateName = $"Node {nodeIndex}";
             nodeIndex++;
-        } while (Prt.Nodes.Any(n => n.Name == candidateName));
+        }
 
         var newNode = new StackPrtNode
         {
-            Name = candidateName,
+            NodeId = nodeIndex.ToString(),
+            Description = "Antwort korrekt?",
             AnswerTest = "AlgEquiv",
             StudentAnswer = "sans1",
             TeacherAnswer = "tans1",
@@ -626,17 +889,18 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
     {
         if (node == null) return;
 
-        string deletedName = node.Name;
+        string deletedNodeId = node.NodeId;
+        string deletedName = node.DisplayName;
         Prt.Nodes.Remove(node);
 
         // Reset branch references pointing to the deleted node
         foreach (var remainingNode in Prt.Nodes)
         {
-            if (remainingNode.NextNodeTrue == deletedName)
+            if (remainingNode.NextNodeTrue == deletedNodeId || remainingNode.NextNodeTrue == deletedName)
             {
                 remainingNode.NextNodeTrue = "-1";
             }
-            if (remainingNode.NextNodeFalse == deletedName)
+            if (remainingNode.NextNodeFalse == deletedNodeId || remainingNode.NextNodeFalse == deletedName)
             {
                 remainingNode.NextNodeFalse = "-1";
             }
