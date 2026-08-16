@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Avalonia.Layout;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -55,6 +56,18 @@ public partial class MainViewModel : ObservableObject
             sw.Stop();
             System.Console.WriteLine($"[CasTextEditor]: {sw.ElapsedMilliseconds} ms");
         }, DispatcherPriority.Render);
+    }
+
+    [RelayCommand]
+    private void OpenSpecificFeedback()
+    {
+        Workspace.OpenOrFocusPane("content:specific_feedback", "Specific Feedback", new CasTextEditorViewModel(ActiveQuestion.SpecificFeedback));
+    }
+
+    [RelayCommand]
+    private void OpenGeneralFeedback()
+    {
+        Workspace.OpenOrFocusPane("content:general_feedback", "General Feedback", new CasTextEditorViewModel(ActiveQuestion.GeneralFeedback));
     }    
     // Dynamic ItemsControl items use their unique model ID
     [RelayCommand]
@@ -63,9 +76,36 @@ public partial class MainViewModel : ObservableObject
         Workspace.OpenOrFocusPane($"input:{input.Id}", input.Name, input);
     }
 
+    private readonly Dictionary<string, PrtEditorViewModel> _prtEditorCache = new();
+
+    public MainViewModel()
+    {
+        foreach (var prt in ActiveQuestion.Prts)
+        {
+            _prtEditorCache[prt.Id] = new PrtEditorViewModel(prt);
+        }
+    }
+
+    public PrtEditorViewModel GetPrtEditorViewModel(StackPrt prt)
+    {
+        if (!_prtEditorCache.TryGetValue(prt.Id, out var vm))
+        {
+            vm = new PrtEditorViewModel(prt);
+            _prtEditorCache[prt.Id] = vm;
+        }
+        return vm;
+    }
+
     [RelayCommand]
     private void SelectPrt(StackPrt prt)
     {
-        Workspace.OpenOrFocusPane($"prt:{prt.Id}", prt.Name, prt);
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var vm = GetPrtEditorViewModel(prt);
+        Workspace.OpenOrFocusPane($"prt:{prt.Id}", prt.Name, vm);
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            sw.Stop();
+            System.Console.WriteLine($"[PrtView]: {sw.ElapsedMilliseconds} ms");
+        }, DispatcherPriority.Render);
     }
 }

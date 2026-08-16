@@ -24,6 +24,7 @@ public partial class App : Application
         // 2. Pre-warm Editor Pools
         EditorPool<CasTextEditor>.EagerPrewarm();
         EditorPool<MaximaEditor>.EagerPrewarm();
+        EditorPool<PrtEditorView>.EagerPrewarm();
 
         // 🚀 3. Force AvaloniaEdit assembly DLL & static constructors to load at app launch!
         Dispatcher.UIThread.InvokeAsync(() =>

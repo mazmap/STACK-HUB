@@ -1,0 +1,410 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:STACK_HUB.Models"
+             xmlns:vm="clr-namespace:STACK_HUB.ViewModels"
+             xmlns:views="clr-namespace:STACK_HUB.Views"
+             x:Class="STACK_HUB.Views.PrtEditorView"
+             x:DataType="vm:PrtEditorViewModel"
+             Background="#18181A">
+
+    <Grid x:Name="RootOverlayGrid">
+        
+        <!-- ============================================================ -->
+        <!-- LAYER 1: FULL CANVAS VIEWPORT BACKGROUND                    -->
+        <!-- ============================================================ -->
+        <!-- 1. CANVAS VIEWPORT -->
+        <Border Grid.Row="0"
+                x:Name="ViewportBorder" 
+                ClipToBounds="True" 
+                Background="#18181A"
+                SizeChanged="OnViewportSizeChanged"
+                PointerPressed="OnViewportPointerPressed"
+                PointerMoved="OnViewportPointerMoved"
+                PointerReleased="OnViewportPointerReleased"
+                PointerWheelChanged="OnViewportPointerWheelChanged">
+            
+            <Border.ContextMenu>
+                <ContextMenu Background="#25262A" BorderBrush="#3D3E42" BorderThickness="1">
+                    <MenuItem Header="+ Add Node Here" Click="OnAddNodeAtCursorClick" Foreground="#CCCCCC" FontSize="12"/>
+                    <Separator Background="#3D3E42"/>
+                    <MenuItem Header="Center View" Click="OnCenterViewButtonClick" Foreground="#CCCCCC" FontSize="12"/>
+                    <MenuItem Header="Reset View" Command="{Binding ResetZoomCommand}" Foreground="#CCCCCC" FontSize="12"/>
+                </ContextMenu>
+            </Border.ContextMenu>
+
+            <Canvas x:Name="CanvasContainer" 
+                    Width="10000" 
+                    Height="10000" 
+                    ClipToBounds="False"
+                    HorizontalAlignment="Left" 
+                    VerticalAlignment="Top" 
+                    RenderTransformOrigin="0%,0%">
+                
+                <Canvas.Background>
+                    <DrawingBrush TileMode="Tile" DestinationRect="0,0,24,24">
+                        <DrawingBrush.Drawing>
+                            <DrawingGroup>
+                                <GeometryDrawing Brush="#18181A">
+                                    <GeometryDrawing.Geometry>
+                                        <RectangleGeometry Rect="0,0,24,24"/>
+                                    </GeometryDrawing.Geometry>
+                                </GeometryDrawing>
+                                <GeometryDrawing Brush="#3A3C42">
+                                    <GeometryDrawing.Geometry>
+                                        <EllipseGeometry Rect="11,11,2,2"/>
+                                    </GeometryDrawing.Geometry>
+                                </GeometryDrawing>
+                            </DrawingGroup>
+                        </DrawingBrush.Drawing>
+                    </DrawingBrush>
+                </Canvas.Background>
+
+                <Canvas.RenderTransform>
+                    <TransformGroup>
+                        <ScaleTransform ScaleX="{Binding ZoomLevel}" ScaleY="{Binding ZoomLevel}"/>
+                        <TranslateTransform X="{Binding PanX}" Y="{Binding PanY}"/>
+                    </TransformGroup>
+                </Canvas.RenderTransform>
+
+                <!-- 0. SELECTION MARQUEE (Rubber-band Box Selection) -->
+                <Border x:Name="SelectionMarquee" 
+                        BorderBrush="#007ACC" 
+                        Background="#20007ACC" 
+                        BorderThickness="1.5" 
+                        CornerRadius="2" 
+                        IsVisible="False" 
+                        ZIndex="999"/>
+
+                <!-- 1. WIRES LAYER (IsHitTestVisible="False" so wires never block mouse dragging!) -->
+                <ItemsControl ItemsSource="{Binding GraphWires}" IsHitTestVisible="False">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas Width="10000" Height="10000" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:PrtGraphWireViewModel">
+                            <Canvas>
+                                <Path Data="{Binding PathData}" Stroke="{Binding StrokeBrush}" StrokeThickness="1.5" />
+                                <Border Canvas.Left="{Binding ScorePosition.X}" 
+                                        Canvas.Top="{Binding ScorePosition.Y}" 
+                                        Background="#16171B" 
+                                        BorderBrush="{Binding StrokeBrush}" 
+                                        BorderThickness="1" 
+                                        CornerRadius="4" 
+                                        Padding="5,2"
+                                        IsVisible="{Binding ScoreText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                    <TextBlock Text="{Binding ScoreText}" 
+                                               Foreground="{Binding StrokeBrush}" 
+                                               FontSize="11" 
+                                               FontWeight="Bold"/>
+                                </Border>
+                            </Canvas>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- 2. NODE CARDS LAYER -->
+                <ItemsControl ItemsSource="{Binding GraphNodes}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas Width="10000" Height="10000" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+
+                    <ItemsControl.Styles>
+                        <Style Selector="ContentPresenter" x:DataType="vm:PrtGraphNodeViewModel">
+                            <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                            <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                        </Style>
+                    </ItemsControl.Styles>
+
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="vm:PrtGraphNodeViewModel">
+                            <StackPanel Width="220">
+                                
+                                <!-- Node Card Container with Selection Highlight Classes & Right-Click Context Menu -->
+                                <Border Width="220" 
+                                        Background="#25262A" 
+                                        Classes.selected="{Binding IsSelected}"
+                                        SizeChanged="OnNodeCardSizeChanged"
+                                        PointerPressed="OnNodeCardPointerPressed"
+                                        PointerMoved="OnNodeCardPointerMoved"
+                                        PointerReleased="OnNodeCardPointerReleased">
+                                    <Border.ContextMenu>
+                                        <ContextMenu Background="#25262A" BorderBrush="#3D3E42" BorderThickness="1">
+                                            <MenuItem Header="Node bearbeiten" Command="{Binding $parent[UserControl].((vm:PrtEditorViewModel)DataContext).SelectNodeCommand}" CommandParameter="{Binding Node}" Foreground="#CCCCCC" FontSize="12"/>
+                                            <MenuItem Header="Node löschen" Command="{Binding $parent[UserControl].((vm:PrtEditorViewModel)DataContext).RemoveNodeCommand}" CommandParameter="{Binding Node}" Foreground="#F92672" FontSize="12"/>
+                                        </ContextMenu>
+                                    </Border.ContextMenu>
+
+                                    <Border.Styles>
+                                        <Style Selector="Border">
+                                            <Setter Property="BorderBrush" Value="#45464A" />
+                                            <Setter Property="BorderThickness" Value="1" />
+                                            <Setter Property="CornerRadius" Value="3" />
+                                        </Style>
+                                        <Style Selector="Border.selected">
+                                            <Setter Property="BorderBrush" Value="#007ACC" />
+                                            <Setter Property="BorderThickness" Value="2" />
+                                        </Style>
+                                    </Border.Styles>
+                                     <Grid RowDefinitions="Auto, Auto, Auto, Auto">
+                                         <!-- Top Input Port Dot -->
+                                         <Ellipse Grid.Row="0" Width="10" Height="10" Fill="#569CD6" HorizontalAlignment="Center" Margin="0,-5,0,-5" ZIndex="10" ToolTip.Tip="Eingangs-Port"/>
+                                         
+                                         <!-- Header Row: Node Number + Description with Selection Highlight -->
+                                         <Border Grid.Row="1" 
+                                                 Classes.selected="{Binding IsSelected}"
+                                                 Padding="6,4" 
+                                                 BorderBrush="#3D3E42" 
+                                                 BorderThickness="0,0,0,1">
+                                             <Border.Styles>
+                                                 <Style Selector="Border">
+                                                     <Setter Property="Background" Value="#2E2F34" />
+                                                 </Style>
+                                                 <Style Selector="Border.selected">
+                                                     <Setter Property="Background" Value="#007ACC" />
+                                                 </Style>
+                                             </Border.Styles>
+                                             
+                                             <TextBlock Text="{Binding Node.Name}" Foreground="#FFFFFF" FontSize="12" FontWeight="SemiBold"/>
+                                         </Border>
+                                         
+                                         <!-- Monospace Maxima Expression Sub-box -->
+                                         <Border Grid.Row="2" Padding="8,6" Background="#1E1E22">
+                                             <TextBlock Text="{Binding Node.MaximaCheck}" FontFamily="Iosevka, Cascadia Code, Consolas, monospace" FontSize="12" Foreground="#DCDCDC" TextTrimming="CharacterEllipsis"/>
+                                         </Border>
+
+                                         <!-- Bottom Output Ports Row (WAHR = Green, FALSCH = Red) -->
+                                         <Grid Grid.Row="3" ColumnDefinitions="*, *" Margin="0,2,0,-5" ZIndex="10">
+                                             <Ellipse Grid.Column="0" 
+                                                      Width="10" 
+                                                      Height="10" 
+                                                      Fill="#4EC9B0" 
+                                                      HorizontalAlignment="Center" 
+                                                      Cursor="Hand"
+                                                      PointerPressed="OnTruePortPointerPressed"
+                                                      ToolTip.Tip="WAHR-Zweig verbinden (Ziehen um zu verbinden)"/>
+                                                      
+                                             <Ellipse Grid.Column="1" 
+                                                      Width="10" 
+                                                      Height="10" 
+                                                      Fill="#F92672" 
+                                                      HorizontalAlignment="Center" 
+                                                      Cursor="Hand"
+                                                      PointerPressed="OnFalsePortPointerPressed"
+                                                      ToolTip.Tip="FALSCH-Zweig verbinden (Ziehen um zu verbinden)"/>
+                                         </Grid>
+                                     </Grid>
+                                </Border>
+
+                                <TextBlock Text="Gestrichelt = Feedback unterdrückt" 
+                                           IsVisible="{Binding Node.Quiet}" 
+                                           FontSize="11" 
+                                           FontStyle="Italic" 
+                                           Foreground="#888888" 
+                                           Margin="0,4,0,0"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+            </Canvas>
+        </Border>
+
+        <!-- TOP-LEFT TOOLBAR (Add Node button + Zoom Controls) -->
+        <Border HorizontalAlignment="Left" VerticalAlignment="Top" Margin="16,16,0,0" Background="#25262A" BorderBrush="#3D3E42" BorderThickness="1" CornerRadius="4" Padding="6,4">
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <Button Content="+ Add Node" Command="{Binding AddNodeCommand}" Background="#007ACC" Foreground="#FFFFFF" Padding="8,3" FontSize="11" FontWeight="SemiBold" CornerRadius="3"/>
+                <Rectangle Width="1" Height="14" Fill="#3D3E42" Margin="2,0"/>
+                <TextBlock Text="{Binding ZoomLevel, StringFormat='{}{0:P0}'}" Foreground="#CCCCCC" FontSize="11" VerticalAlignment="Center" Margin="4,0"/>
+                <Button Content="Center View" Click="OnCenterViewButtonClick" Background="#1E1E22" Foreground="#CCCCCC" Padding="8,3" FontSize="11" CornerRadius="3"/>
+                <Button Content="Reset" Command="{Binding ResetZoomCommand}" Background="#1E1E22" Foreground="#CCCCCC" Padding="8,3" FontSize="11" CornerRadius="3"/>
+            </StackPanel>
+        </Border>
+
+        <!-- ============================================================ -->
+        <!-- LAYER 2: BOTTOM FEEDBACK VARIABLES OVERLAY PANE              -->
+        <!-- ============================================================ -->
+        <!-- Minimized Button -->
+        <Button Content="Feedback Variablen" 
+                Command="{Binding ToggleFeedbackVariablesCommand}" 
+                IsVisible="{Binding !IsFeedbackVariablesExpanded}" 
+                HorizontalAlignment="Left" 
+                VerticalAlignment="Bottom" 
+                Margin="12" 
+                Background="#25262A" 
+                Foreground="#CCCCCC" 
+                BorderBrush="#3D3E42" 
+                BorderThickness="1" 
+                CornerRadius="3" 
+                Padding="12,6" 
+                FontSize="12"/>
+
+        <!-- Expanded Bottom Pane -->
+        <Grid VerticalAlignment="Bottom" 
+              HorizontalAlignment="Stretch"
+              IsVisible="{Binding IsFeedbackVariablesExpanded}">
+            <Border Height="{Binding FeedbackVariablesHeight}" 
+                    x:Name="BottomPaneBorder"
+                    Background="#1E1E22" 
+                    BorderBrush="#333333" 
+                    BorderThickness="0,1,0,0">
+                <Grid RowDefinitions="Auto, Auto, *">
+                    <!-- Top Resize Drag Handle -->
+                    <Border Grid.Row="0" 
+                            Height="6" 
+                            Background="#333333" 
+                            Cursor="SizeNorthSouth"
+                            PointerPressed="OnBottomResizeHandlePointerPressed"
+                            PointerMoved="OnBottomResizeHandlePointerMoved"
+                            PointerReleased="OnBottomResizeHandlePointerReleased"/>
+
+                    <!-- Header -->
+                    <Border Grid.Row="1" Background="#25262A" Padding="12,6" BorderBrush="#333333" BorderThickness="0,0,0,1">
+                        <Grid ColumnDefinitions="*, Auto">
+                            <TextBlock Grid.Column="0" Text="Feedback Variablen" Foreground="#CCCCCC" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <Button Grid.Column="1" Content="—" Command="{Binding ToggleFeedbackVariablesCommand}" Background="Transparent" Foreground="#AAAAAA" FontSize="14" Padding="8,2"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Maxima Editor bound to FeedbackVariablesEditor ViewModel (pooled via ViewLocator) -->
+                    <ContentControl Grid.Row="2" Content="{Binding FeedbackVariablesEditor}"/>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ============================================================ -->
+        <!-- LAYER 3: RIGHT NODE EDITOR OVERLAY PANE                      -->
+        <!-- ============================================================ -->
+        <Grid HorizontalAlignment="Right" VerticalAlignment="Stretch" IsVisible="{Binding SelectedNode, Converter={x:Static ObjectConverters.IsNotNull}}">
+            <Border Width="{Binding NodeEditorWidth}" 
+                    Background="#1E1E22" 
+                    BorderBrush="#333333" 
+                    BorderThickness="1,0,0,0">
+                <Grid ColumnDefinitions="Auto, *">
+                    <!-- Left Resize Drag Handle -->
+                    <Border Grid.Column="0" 
+                            Width="6" 
+                            Background="#333333" 
+                            Cursor="SizeWestEast"
+                            PointerPressed="OnRightResizeHandlePointerPressed"
+                            PointerMoved="OnRightResizeHandlePointerMoved"
+                            PointerReleased="OnRightResizeHandlePointerReleased"/>
+
+                    <!-- Form Controls Container -->
+                    <Grid Grid.Column="1" RowDefinitions="Auto, *">
+                        <Border Grid.Row="0" Background="#25262A" Padding="14,10" BorderBrush="#333333" BorderThickness="0,0,0,1">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <TextBlock Grid.Column="0" Text="Node Editor" FontSize="14" FontWeight="SemiBold" Foreground="#FFFFFF" VerticalAlignment="Center"/>
+                                <Button Grid.Column="1" Content="—" Command="{Binding CloseNodeEditorCommand}" Background="Transparent" Foreground="#AAAAAA" FontSize="14" Padding="8,2"/>
+                            </Grid>
+                        </Border>
+
+                        <ScrollViewer Grid.Row="1" Padding="14">
+                            <StackPanel Spacing="12" Margin="0,0,0,100">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Node Id" Foreground="#AAAAAA" FontSize="11"/>
+                                    <TextBox Text="{Binding SelectedNode.Id, Mode=OneWay}" IsReadOnly="True" Background="#18181A" Padding="6,4"/>
+                                </StackPanel>
+
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Beschreibung" Foreground="#AAAAAA" FontSize="11"/>
+                                    <TextBox Text="{Binding SelectedNode.Name, Mode=TwoWay}" Padding="6,4"/>
+                                </StackPanel>
+
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Antworttest" Foreground="#AAAAAA" FontSize="11"/>
+                                    <ComboBox ItemsSource="{Binding AvailableAnswerTests}" SelectedItem="{Binding SelectedNode.AnswerTest, Mode=TwoWay}" HorizontalAlignment="Stretch"/>
+                                </StackPanel>
+
+                                <Grid ColumnDefinitions="*, *">
+                                    <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,4,0">
+                                        <TextBlock Text="SAns" Foreground="#AAAAAA" FontSize="11"/>
+                                        <TextBox Text="{Binding SelectedNode.StudentAnswer, Mode=TwoWay}" FontFamily="monospace" Padding="6,4"/>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Spacing="4" Margin="4,0,0,0">
+                                        <TextBlock Text="TAns" Foreground="#AAAAAA" FontSize="11"/>
+                                        <TextBox Text="{Binding SelectedNode.TeacherAnswer, Mode=TwoWay}" FontFamily="monospace" Padding="6,4"/>
+                                    </StackPanel>
+                                </Grid>
+
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="Testoptionen" Foreground="#AAAAAA" FontSize="11"/>
+                                    <TextBox Text="{Binding SelectedNode.TestOptions, Mode=TwoWay}" Padding="6,4"/>
+                                </StackPanel>
+
+                                <CheckBox IsChecked="{Binding SelectedNode.Quiet, Mode=TwoWay}" Content="Feedback unterdrücken" Foreground="#CCCCCC" FontSize="12"/>
+
+                                <!-- WAHR-FEEDBACK -->
+                                <StackPanel Spacing="8" Margin="0,6,0,0">
+                                    <TextBlock Text="WAHR-Feedback" Foreground="#4EC9B0" FontSize="12" FontWeight="Bold"/>
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="Score-Mode" Foreground="#AAAAAA" FontSize="11"/>
+                                        <ComboBox ItemsSource="{Binding AvailableScoreModes}" SelectedItem="{Binding SelectedNode.ScoreModeTrue, Mode=TwoWay}" HorizontalAlignment="Stretch"/>
+                                    </StackPanel>
+
+                                    <Grid ColumnDefinitions="*, *">
+                                        <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,4,0">
+                                            <TextBlock Text="Score" Foreground="#AAAAAA" FontSize="11"/>
+                                            <NumericUpDown Value="{Binding SelectedNode.ScoreTrue, Mode=TwoWay}" Increment="0.5" Minimum="0"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Spacing="4" Margin="4,0,0,0">
+                                            <TextBlock Text="Abzüge" Foreground="#AAAAAA" FontSize="11"/>
+                                            <NumericUpDown Value="{Binding SelectedNode.PenaltyTrue, Mode=TwoWay}" Increment="0.1" Minimum="0"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="Nächste Node" Foreground="#AAAAAA" FontSize="11"/>
+                                        <ComboBox ItemsSource="{Binding $parent[UserControl].((vm:PrtEditorViewModel)DataContext).AvailableNodeNames}" SelectedItem="{Binding SelectedNode.DisplayNextNodeTrue, Mode=TwoWay}" HorizontalAlignment="Stretch"/>
+                                    </StackPanel>
+
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="Feedback" Foreground="#AAAAAA" FontSize="11"/>
+                                        <TextBox Text="{Binding SelectedNode.TrueFeedback, Mode=TwoWay}" AcceptsReturn="True" Height="50" TextWrapping="Wrap" FontFamily="monospace"/>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- FALSCH-FEEDBACK -->
+                                <StackPanel Spacing="8" Margin="0,6,0,0">
+                                    <TextBlock Text="FALSCH-Feedback" Foreground="#F92672" FontSize="12" FontWeight="Bold"/>
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="Score-Mode" Foreground="#AAAAAA" FontSize="11"/>
+                                        <ComboBox ItemsSource="{Binding AvailableScoreModes}" SelectedItem="{Binding SelectedNode.ScoreModeFalse, Mode=TwoWay}" HorizontalAlignment="Stretch"/>
+                                    </StackPanel>
+
+                                    <Grid ColumnDefinitions="*, *">
+                                        <StackPanel Grid.Column="0" Spacing="4" Margin="0,0,4,0">
+                                            <TextBlock Text="Score" Foreground="#AAAAAA" FontSize="11"/>
+                                            <NumericUpDown Value="{Binding SelectedNode.ScoreFalse, Mode=TwoWay}" Increment="0.5" Minimum="0"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="1" Spacing="4" Margin="4,0,0,0">
+                                            <TextBlock Text="Abzüge" Foreground="#AAAAAA" FontSize="11"/>
+                                            <NumericUpDown Value="{Binding SelectedNode.PenaltyFalse, Mode=TwoWay}" Increment="0.1" Minimum="0"/>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="Nächste Node" Foreground="#AAAAAA" FontSize="11"/>
+                                        <ComboBox ItemsSource="{Binding $parent[UserControl].((vm:PrtEditorViewModel)DataContext).AvailableNodeNames}" SelectedItem="{Binding SelectedNode.DisplayNextNodeFalse, Mode=TwoWay}" HorizontalAlignment="Stretch"/>
+                                    </StackPanel>
+
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="Feedback" Foreground="#AAAAAA" FontSize="11"/>
+                                        <TextBox Text="{Binding SelectedNode.FalseFeedback, Mode=TwoWay}" AcceptsReturn="True" Height="50" TextWrapping="Wrap" FontFamily="monospace"/>
+                                    </StackPanel>
+                                </StackPanel>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

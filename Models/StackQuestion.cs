@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace STACK_HUB.Models;
 
@@ -22,17 +23,126 @@ public class StackQuestion
         Inputs.Add(new StackInput { Name = "ans1", ModelAnswer = "model_ans" });
         
         var defaultPrt = new StackPrt { Name = "prt1" };
+        
+        // Node 1: Root Equivalence Test
         defaultPrt.Nodes.Add(new StackPrtNode
         {
             Name = "Node 1",
             AnswerTest = "AlgEquiv",
             StudentAnswer = "ans1",
             TeacherAnswer = "model_ans",
-            NextNodeTrue = "-1",
-            NextNodeFalse = "-1",
-            TrueFeedback = "<p>Correct! Your answer is algebraically equivalent.</p>",
-            FalseFeedback = "<p>Incorrect. Your answer is not equivalent.</p>"
+            ScoreModeTrue = "Set to",
+            ScoreTrue = 1.0,
+            NextNodeTrue = "Node 3",
+            ScoreModeFalse = "Set to",
+            ScoreFalse = 0.0,
+            NextNodeFalse = "Node 2",
+            TrueFeedback = "<p>Correct! Answer is algebraically equivalent. Checking simplification...</p>",
+            FalseFeedback = "<p>Incorrect. Checking for common sign error...</p>"
         });
+
+        // Node 2: Sign Error Check
+        defaultPrt.Nodes.Add(new StackPrtNode
+        {
+            Name = "Node 2",
+            AnswerTest = "AlgEquiv",
+            StudentAnswer = "ans1",
+            TeacherAnswer = "-model_ans",
+            ScoreModeTrue = "Set to",
+            ScoreTrue = 0.5,
+            NextNodeTrue = "-1",
+            ScoreModeFalse = "Set to",
+            ScoreFalse = 0.0,
+            NextNodeFalse = "Node 4",
+            TrueFeedback = "<p>Sign error detected. Partial credit awarded.</p>",
+            FalseFeedback = "<p>Checking for differentiation instead of integration...</p>"
+        });
+
+        // Node 3: Lowest Terms / Form Check
+        defaultPrt.Nodes.Add(new StackPrtNode
+        {
+            Name = "Node 3",
+            AnswerTest = "LowestTerms",
+            StudentAnswer = "ans1",
+            TeacherAnswer = "model_ans",
+            ScoreModeTrue = "Set to",
+            ScoreTrue = 1.0,
+            NextNodeTrue = "Node 5",
+            ScoreModeFalse = "Set to",
+            ScoreFalse = 0.8,
+            NextNodeFalse = "-1",
+            TrueFeedback = "<p>Answer is fully simplified.</p>",
+            FalseFeedback = "<p>Your answer is equivalent but not in lowest terms.</p>"
+        });
+
+        // Node 4: Derivative Misconception Check
+        defaultPrt.Nodes.Add(new StackPrtNode
+        {
+            Name = "Node 4",
+            AnswerTest = "AlgEquiv",
+            StudentAnswer = "ans1",
+            TeacherAnswer = "diff(model_ans, x)",
+            ScoreModeTrue = "Set to",
+            ScoreTrue = 0.2,
+            NextNodeTrue = "Node 6",
+            ScoreModeFalse = "Set to",
+            ScoreFalse = 0.0,
+            NextNodeFalse = "Node 7",
+            TrueFeedback = "<p>It appears you differentiated instead of integrating.</p>",
+            FalseFeedback = "<p>Checking fallback structure...</p>"
+        });
+
+        // Node 5: Factored Form Check
+        defaultPrt.Nodes.Add(new StackPrtNode
+        {
+            Name = "Node 5",
+            AnswerTest = "FacForm",
+            StudentAnswer = "ans1",
+            TeacherAnswer = "model_ans",
+            ScoreModeTrue = "Set to",
+            ScoreTrue = 1.0,
+            NextNodeTrue = "-1",
+            ScoreModeFalse = "Set to",
+            ScoreFalse = 0.9,
+            NextNodeFalse = "-1",
+            TrueFeedback = "<p>Perfect! Answer is completely factored.</p>",
+            FalseFeedback = "<p>Good, but answer could be factored further.</p>"
+        });
+
+        // Node 6: Missing Constant Check
+        defaultPrt.Nodes.Add(new StackPrtNode
+        {
+            Name = "Node 6",
+            AnswerTest = "AlgEquiv",
+            StudentAnswer = "ans1",
+            TeacherAnswer = "model_ans + c",
+            ScoreModeTrue = "Set to",
+            ScoreTrue = 0.3,
+            NextNodeTrue = "-1",
+            ScoreModeFalse = "Set to",
+            ScoreFalse = 0.0,
+            NextNodeFalse = "-1",
+            TrueFeedback = "<p>Did you forget the constant of integration?</p>",
+            FalseFeedback = "<p>Incorrect derivative result.</p>"
+        });
+
+        // Node 7: Expanded Form Fallback
+        defaultPrt.Nodes.Add(new StackPrtNode
+        {
+            Name = "Node 7",
+            AnswerTest = "Expanded",
+            StudentAnswer = "ans1",
+            TeacherAnswer = "model_ans",
+            ScoreModeTrue = "Set to",
+            ScoreTrue = 0.1,
+            NextNodeTrue = "-1",
+            ScoreModeFalse = "Set to",
+            ScoreFalse = 0.0,
+            NextNodeFalse = "-1",
+            TrueFeedback = "<p>Expanded form recognized.</p>",
+            FalseFeedback = "<p>No matching algebraic pattern recognized.</p>"
+        });
+
         Prts.Add(defaultPrt);
     }
 }
@@ -50,26 +160,124 @@ public class StackInput
     public string ExtraOptions { get; set; } = "";
 }
 
-public class StackPrt
+public partial class StackPrt : ObservableObject
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
-    public string Name { get; set; } = "prt1";
-    public double Value { get; set; } = 1.0;
-    public string FeedbackStyle { get; set; } = "Standard"; // Standard, Compact, None
+
+    [ObservableProperty]
+    private string _name = "prt1";
+
+    [ObservableProperty]
+    private double _value = 1.0;
+
+    [ObservableProperty]
+    private string _feedbackStyle = "Standard"; // Standard, Compact, None
+
+    [ObservableProperty]
+    private string _feedbackVariables = "/*\nans1 = list of the CAS values assigned to the selected options\nmcq_correct(tans) = list of the CAS values assigned to the correct (true) options\nmcq_incorrect(tans) = list of the CAS values assigned to the incorrect (false) options\n*/\n\nnumOptions: length(tans);\n\ncorrectOptionValues: mcq_correct(tans);\nincorrectOptionValues: mcq_incorrect(tans);"; 
+    
     public ObservableCollection<StackPrtNode> Nodes { get; set; } = new();
 }
 
-public class StackPrtNode
+public partial class StackPrtNode : ObservableObject
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
-    public string Name { get; set; } = "Node 1";
-    public string AnswerTest { get; set; } = "AlgEquiv";
-    public string StudentAnswer { get; set; } = "ans1";
-    public string TeacherAnswer { get; set; } = "model_ans";
-    public double NodeScore { get; set; } = 1.0;
-    public double Penalty { get; set; } = 0.1;
-    public string NextNodeTrue { get; set; } = "-1"; // "-1" for Stop, otherwise Node number
-    public string NextNodeFalse { get; set; } = "-1";
-    public string TrueFeedback { get; set; } = "";
-    public string FalseFeedback { get; set; } = "";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MaximaCheck))]
+    private string _name = "Antwort korrekt?";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MaximaCheck))]
+    private string _answerTest = "AlgEquiv";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MaximaCheck))]
+    private string _studentAnswer = "sans1";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MaximaCheck))]
+    private string _teacherAnswer = "tans1";
+
+    [ObservableProperty]
+    private string _testOptions = "AlgEquiv";
+
+    [ObservableProperty]
+    private bool _quiet;
+
+    [ObservableProperty]
+    private string _scoreModeTrue = "Set to";
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NodeScore))]
+    private double _scoreTrue = 1.0;
+
+    [ObservableProperty]
+    private double _penaltyTrue = 0.0;
+
+    [ObservableProperty]
+    private string _scoreModeFalse = "Set to";
+
+    [ObservableProperty]
+    private double _scoreFalse = 0.0;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(Penalty))]
+    private double _penaltyFalse = 0.1;
+
+    public double NodeScore
+    {
+        get => ScoreTrue;
+        set => ScoreTrue = value;
+    }
+
+    public double Penalty
+    {
+        get => PenaltyFalse;
+        set => PenaltyFalse = value;
+    }
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayNextNodeTrue))]
+    private string _nextNodeTrue = "-1"; // "-1" for Stop, otherwise Node number
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayNextNodeFalse))]
+    private string _nextNodeFalse = "-1";
+
+    public string DisplayNextNodeTrue
+    {
+        get => string.IsNullOrEmpty(NextNodeTrue) || NextNodeTrue == "-1" ? "Keine" : NextNodeTrue;
+        set
+        {
+            if (value == null) return; // Prevent ComboBox unload/detachment from wiping the connection!
+            var val = value == "Keine" ? "-1" : value;
+            if (NextNodeTrue != val)
+            {
+                NextNodeTrue = val;
+            }
+        }
+    }
+
+    public string DisplayNextNodeFalse
+    {
+        get => string.IsNullOrEmpty(NextNodeFalse) || NextNodeFalse == "-1" ? "Keine" : NextNodeFalse;
+        set
+        {
+            if (value == null) return; // Prevent ComboBox unload/detachment from wiping the connection!
+            var val = value == "Keine" ? "-1" : value;
+            if (NextNodeFalse != val)
+            {
+                NextNodeFalse = val;
+            }
+        }
+    }
+
+    [ObservableProperty]
+    private string _trueFeedback = "<p>Prima, das ist richtig!</p>";
+
+    [ObservableProperty]
+    private string _falseFeedback = "<p>Prima, das ist richtig!</p>";
+
+    public string MaximaCheck => $"{AnswerTest}({StudentAnswer},{TeacherAnswer})";
 }

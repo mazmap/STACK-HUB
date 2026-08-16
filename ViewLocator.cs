@@ -60,6 +60,10 @@ public class ViewLocator : IDataTemplate
             {
                 view = EditorPool<MaximaEditor>.GetOrCreate();
             }
+            else if (type == typeof(PrtEditorView))
+            {
+                view = EditorPool<PrtEditorView>.GetOrCreate();
+            }
             else
             {
                 view = (Control)Activator.CreateInstance(type)!;

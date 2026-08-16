@@ -2,6 +2,9 @@ Integrated git versioning:
 - How is this organized?
 - What is the repository? 
 
+Do we really need three different settings panels? Or is one enough?
+The settings should be easily searchable
+
 PRT Editor
 
 Maxima syntax highlighting support (second editor)
