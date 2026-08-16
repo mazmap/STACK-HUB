@@ -1077,7 +1077,17 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
             }
         }
 
-        if (SelectedNode == node) SelectedNode = Prt.Nodes.LastOrDefault();
+        if (SelectedNode == node || SelectedNode?.Id == node.Id)
+        {
+            SelectedNode = null;
+        }
+
+        var selectedGNode = SelectedGraphNodes.FirstOrDefault(gn => gn.Node.Id == node.Id);
+        if (selectedGNode != null)
+        {
+            SelectedGraphNodes.Remove(selectedGNode);
+        }
+
         RebuildGraph();
     }
 }

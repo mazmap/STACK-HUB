@@ -44,6 +44,19 @@ public partial class MainWindow : Window
         {
             PrewarmPrtEditorView.DataContext = new PrtEditorViewModel(new StackPrt());
         }
+
+        // Pre-warm Input Editor layout & styling pipeline at launch
+        if (mainVm.ActiveQuestion.Inputs.Any())
+        {
+            PrewarmInputEditorView.DataContext = mainVm.GetInputEditorViewModel(mainVm.ActiveQuestion.Inputs.First());
+        }
+        else
+        {
+            PrewarmInputEditorView.DataContext = new InputEditorViewModel(new StackInput());
+        }
+
+        // Pre-warm General Settings layout & styling pipeline at launch
+        PrewarmGeneralSettingsView.DataContext = mainVm.GetGeneralSettingsViewModel();
     }
 
     private void OnDialogBackdropPointerPressed(object? sender, PointerPressedEventArgs e)

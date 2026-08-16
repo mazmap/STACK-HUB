@@ -64,6 +64,14 @@ public class ViewLocator : IDataTemplate
             {
                 view = EditorPool<PrtEditorView>.GetOrCreate();
             }
+            else if (type == typeof(InputEditorView))
+            {
+                view = EditorPool<InputEditorView>.GetOrCreate();
+            }
+            else if (type == typeof(GeneralSettingsView))
+            {
+                view = EditorPool<GeneralSettingsView>.GetOrCreate();
+            }
             else
             {
                 view = (Control)Activator.CreateInstance(type)!;

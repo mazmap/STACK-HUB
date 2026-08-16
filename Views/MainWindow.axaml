@@ -274,6 +274,8 @@
           <views:CasTextEditor x:Name="PrewarmCasTextEditor" Width="800" Height="600" Canvas.Left="-9999" Canvas.Top="-9999" />
           <views:MaximaEditor x:Name="PrewarmMaximaEditor" Width="800" Height="600" Canvas.Left="-9999" Canvas.Top="-9999" />
           <views:PrtEditorView x:Name="PrewarmPrtEditorView" Width="800" Height="600" Canvas.Left="-9999" Canvas.Top="-9999" />
+          <views:InputEditorView x:Name="PrewarmInputEditorView" Width="800" Height="600" Canvas.Left="-9999" Canvas.Top="-9999" />
+          <views:GeneralSettingsView x:Name="PrewarmGeneralSettingsView" Width="800" Height="600" Canvas.Left="-9999" Canvas.Top="-9999" />
         </Canvas>
     </Grid>
 </Window>

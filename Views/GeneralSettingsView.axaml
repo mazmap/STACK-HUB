@@ -1,0 +1,81 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:STACK_HUB.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="900"
+             x:Class="STACK_HUB.Views.GeneralSettingsView"
+             x:DataType="vm:GeneralSettingsViewModel"
+             Background="#18191D">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.label">
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Foreground" Value="#8A8E9B"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#23252B"/>
+            <Setter Property="Foreground" Value="#E6E8EE"/>
+            <Setter Property="BorderBrush" Value="#353742"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontFamily" Value="Consolas, Menlo, Monaco, 'Courier New', monospace"/>
+        </Style>
+        <Style Selector="TextBox:focus">
+            <Setter Property="BorderBrush" Value="#4B68A8"/>
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="12" Margin="16,16,16,40" MaxWidth="750" HorizontalAlignment="Left">
+            
+            <!-- 1. Fragetitel -->
+            <StackPanel Spacing="0">
+                <TextBlock Text="Fragetitel" Classes="label"/>
+                <TextBox Text="{Binding Question.Name, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <!-- 2. Standardbewertung & Abzüge (Side-by-Side) -->
+            <Grid ColumnDefinitions="*, *">
+                <!-- Standardbewertung -->
+                <StackPanel Grid.Column="0" Spacing="0" Margin="0,0,5,0">
+                    <TextBlock Text="Standardbewertung" Classes="label"/>
+                    <TextBox Text="{Binding EditingDefaultGrade, Mode=TwoWay}"/>
+                </StackPanel>
+
+                <!-- Abzüge -->
+                <StackPanel Grid.Column="1" Spacing="0" Margin="5,0,0,0">
+                    <TextBlock Text="Abzüge" Classes="label"/>
+                    <TextBox Text="{Binding EditingPenalty, Mode=TwoWay}"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- 3. ID-Nummer -->
+            <StackPanel Spacing="0">
+                <TextBlock Text="ID-Nummer" Classes="label"/>
+                <TextBox Text="{Binding Question.IdNumber, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <!-- 4. Aufgabenbeschreibung -->
+            <StackPanel Spacing="0">
+                <TextBlock Text="Aufgabenbeschreibung" Classes="label"/>
+                <Border Height="180" BorderBrush="#353742" BorderThickness="1" CornerRadius="3" ClipToBounds="True">
+                    <ContentControl Content="{Binding DescriptionEditor}"/>
+                </Border>
+            </StackPanel>
+
+            <!-- 5. Aufgabenhinweis -->
+            <StackPanel Spacing="0">
+                <TextBlock Text="Aufgabenhinweis" Classes="label"/>
+                <Border Height="90" BorderBrush="#353742" BorderThickness="1" CornerRadius="3" ClipToBounds="True">
+                    <ContentControl Content="{Binding QuestionNoteEditor}"/>
+                </Border>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

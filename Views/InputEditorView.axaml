@@ -1,0 +1,163 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:STACK_HUB.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="900"
+             x:Class="STACK_HUB.Views.InputEditorView"
+             x:DataType="vm:InputEditorViewModel"
+             Background="#18191D">
+
+    <UserControl.Styles>
+        <Style Selector="TextBlock.label">
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Foreground" Value="#8A8E9B"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <Style Selector="TextBox">
+            <Setter Property="Background" Value="#23252B"/>
+            <Setter Property="Foreground" Value="#E6E8EE"/>
+            <Setter Property="BorderBrush" Value="#353742"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontFamily" Value="Consolas, Menlo, Monaco, 'Courier New', monospace"/>
+            <Setter Property="MaxWidth" Value="750"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+        <Style Selector="TextBox:focus">
+            <Setter Property="BorderBrush" Value="#4B68A8"/>
+        </Style>
+
+        <Style Selector="ComboBox">
+            <Setter Property="Background" Value="#23252B"/>
+            <Setter Property="Foreground" Value="#E6E8EE"/>
+            <Setter Property="BorderBrush" Value="#353742"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontFamily" Value="Consolas, Menlo, Monaco, 'Courier New', monospace"/>
+            <Setter Property="MaxWidth" Value="750"/>
+            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+        </Style>
+        <Style Selector="ComboBox:focus">
+            <Setter Property="BorderBrush" Value="#4B68A8"/>
+        </Style>
+
+        <Style Selector="CheckBox">
+            <Setter Property="Foreground" Value="#E6E8EE"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="FontFamily" Value="Consolas, Menlo, Monaco, 'Courier New', monospace"/>
+            <Setter Property="Padding" Value="8,0,0,0"/>
+            <Setter Property="Margin" Value="0,2,0,2"/>
+            <Setter Property="MaxWidth" Value="750"/>
+        </Style>
+    </UserControl.Styles>
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel Spacing="12" Margin="16,16,16,40" MaxWidth="750" HorizontalAlignment="Left">
+            
+            <!-- 1. Name -->
+            <StackPanel Spacing="0">
+                <TextBlock Text="Name" Classes="label"/>
+                <TextBox Text="{Binding Input.Name, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <!-- 2. Typ -->
+            <StackPanel Spacing="0">
+                <TextBlock Text="Typ" Classes="label"/>
+                <ComboBox ItemsSource="{x:Static vm:InputEditorViewModel.AllInputTypes}"
+                          SelectedValue="{Binding Input.Type, Mode=TwoWay}"
+                          SelectedValueBinding="{Binding Key}"
+                          DisplayMemberBinding="{Binding DisplayName}"/>
+            </StackPanel>
+
+            <!-- 3. Musterlösung (tans) -->
+            <StackPanel Spacing="0">
+                <TextBlock Text="Musterlösung (tans)" Classes="label"/>
+                <TextBox Text="{Binding Input.TeacherAnswer, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <!-- 4. Eingabefeldgröße (boxsize) -->
+            <StackPanel Spacing="0" IsVisible="{Binding ShowBoxSize}">
+                <TextBlock Text="Eingabefeldgröße (boxsize)" Classes="label"/>
+                <TextBox Text="{Binding Input.BoxSize, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <!-- 5. Strikte Syntaxprüfung (strictsyntax) -->
+            <CheckBox IsChecked="{Binding Input.StrictSyntax, Mode=TwoWay}" 
+                      Content="Strikte Syntaxprüfung (strictsyntax)" 
+                      IsVisible="{Binding ShowStrictSyntaxAndStars}"/>
+
+            <!-- 6. Multiplikationssterne einfügen (insertstart) -->
+            <CheckBox IsChecked="{Binding Input.InsertStarsBool, Mode=TwoWay}" 
+                      Content="Multiplikationssterne einfügen (insertstart)" 
+                      IsVisible="{Binding ShowStrictSyntaxAndStars}"/>
+
+            <!-- 7. Syntax-Hinweis (syntaxhint) -->
+            <StackPanel Spacing="0" IsVisible="{Binding ShowSyntaxHintAndAttribute}">
+                <TextBlock Text="Syntax-Hinweis (syntaxhint)" Classes="label"/>
+                <TextBox Text="{Binding Input.SyntaxHint, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <!-- 8. Syntax-Attribut (syntaxattribute) -->
+            <StackPanel Spacing="0" IsVisible="{Binding ShowSyntaxHintAndAttribute}">
+                <TextBlock Text="Syntax-Attribut (syntaxattribute)" Classes="label"/>
+                <ComboBox ItemsSource="{x:Static vm:InputEditorViewModel.SyntaxAttributeChoices}"
+                          SelectedValue="{Binding Input.SyntaxAttribute, Mode=TwoWay}"
+                          SelectedValueBinding="{Binding Value}"
+                          DisplayMemberBinding="{Binding Label}"/>
+            </StackPanel>
+
+            <!-- 9. Verbotene Wörter (forbidwords) -->
+            <StackPanel Spacing="0" IsVisible="{Binding ShowForbidAllowWords}">
+                <TextBlock Text="Verbotene Wörter (forbidwords)" Classes="label"/>
+                <TextBox Text="{Binding Input.ForbidWords, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <!-- 10. Erlaubte Wörter (allowwords) -->
+            <StackPanel Spacing="0" IsVisible="{Binding ShowForbidAllowWords}">
+                <TextBlock Text="Erlaubte Wörter (allowwords)" Classes="label"/>
+                <TextBox Text="{Binding Input.AllowWords, Mode=TwoWay}"/>
+            </StackPanel>
+
+            <!-- 11. Fließkommazahlen verbieten (forbidfloat) -->
+            <CheckBox IsChecked="{Binding Input.ForbidFloat, Mode=TwoWay}" 
+                      Content="Fließkommazahlen verbieten (forbidfloat)" 
+                      IsVisible="{Binding ShowForbidFloatAndLowestTerms}"/>
+
+            <!-- 12. Gekürzte Form verlangen (requirelowestterm) -->
+            <CheckBox IsChecked="{Binding Input.RequireLowestTerm, Mode=TwoWay}" 
+                      Content="Vollständig gekürzt verlangen (requirelowestterm)" 
+                      IsVisible="{Binding ShowForbidFloatAndLowestTerms}"/>
+
+            <!-- 13. Antworttyp prüfen (checkanswertype) -->
+            <CheckBox IsChecked="{Binding Input.CheckAnswerType, Mode=TwoWay}" 
+                      Content="Antworttyp prüfen (checkanswertype)" 
+                      IsVisible="{Binding ShowCheckAnswerType}"/>
+
+            <!-- 14. Student muss verifizieren (mustverify) -->
+            <CheckBox IsChecked="{Binding Input.MustVerify, Mode=TwoWay}" 
+                      Content="Student muss verifizieren (mustverify)"/>
+
+            <!-- 15. Validierung anzeigen (showvalidation) -->
+            <StackPanel Spacing="0">
+                <TextBlock Text="Validierung anzeigen (showvalidation)" Classes="label"/>
+                <ComboBox ItemsSource="{x:Static vm:InputEditorViewModel.ShowValidationChoices}"
+                          SelectedValue="{Binding Input.ShowValidation, Mode=TwoWay}"
+                          SelectedValueBinding="{Binding Value}"
+                          DisplayMemberBinding="{Binding Label}"/>
+            </StackPanel>
+
+            <!-- 16. Optionen (options) -->
+            <StackPanel Spacing="0">
+                <TextBlock Text="Optionen (options)" Classes="label"/>
+                <TextBox Text="{Binding Input.Options, Mode=TwoWay}"/>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

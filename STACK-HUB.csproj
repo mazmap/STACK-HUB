@@ -29,5 +29,8 @@
       <Compile Update="Views\PrtEditorView.axaml.cs">
         <DependentUpon>PrtEditorView.axaml</DependentUpon>
       </Compile>
+      <Compile Update="Views\InputEditorView.axaml.cs">
+        <DependentUpon>InputEditorView.axaml</DependentUpon>
+      </Compile>
     </ItemGroup>
 </Project>

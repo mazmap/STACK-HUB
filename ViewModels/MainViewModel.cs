@@ -141,11 +141,26 @@ public partial class MainViewModel : ObservableObject
         AddDialogErrorMessage = null;
     }
 
+    private GeneralSettingsViewModel? _generalSettingsViewModel;
+
+    public GeneralSettingsViewModel GetGeneralSettingsViewModel()
+    {
+        _generalSettingsViewModel ??= new GeneralSettingsViewModel(ActiveQuestion);
+        return _generalSettingsViewModel;
+    }
+
     // Fixed panel with explicit ID string key
     [RelayCommand]
     private void OpenGeneralSettings()
     {
-        Workspace.OpenOrFocusPane("settings:general", "General Settings", "General Settings Content");
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var vm = GetGeneralSettingsViewModel();
+        Workspace.OpenOrFocusPane("settings:general", "General Settings", vm);
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            sw.Stop();
+            System.Console.WriteLine($"[GeneralSettingsView]: {sw.ElapsedMilliseconds} ms");
+        }, DispatcherPriority.Render);
     }
     
     [RelayCommand]
@@ -196,21 +211,44 @@ public partial class MainViewModel : ObservableObject
     {
         Workspace.OpenOrFocusPane("content:general_feedback", "General Feedback", new CasTextEditorViewModel(ActiveQuestion.GeneralFeedback));
     }    
-    // Dynamic ItemsControl items use their unique model ID
-    [RelayCommand]
-    private void SelectInput(StackInput input)
-    {
-        Workspace.OpenOrFocusPane($"input:{input.Id}", input.Name, input);
-    }
-
+    private readonly Dictionary<string, InputEditorViewModel> _inputEditorCache = new();
     private readonly Dictionary<string, PrtEditorViewModel> _prtEditorCache = new();
 
     public MainViewModel()
     {
+        foreach (var input in ActiveQuestion.Inputs)
+        {
+            _inputEditorCache[input.Id] = new InputEditorViewModel(input);
+        }
+
         foreach (var prt in ActiveQuestion.Prts)
         {
             _prtEditorCache[prt.Id] = new PrtEditorViewModel(prt);
         }
+    }
+
+    public InputEditorViewModel GetInputEditorViewModel(StackInput input)
+    {
+        if (!_inputEditorCache.TryGetValue(input.Id, out var vm))
+        {
+            vm = new InputEditorViewModel(input);
+            _inputEditorCache[input.Id] = vm;
+        }
+        return vm;
+    }
+
+    // Dynamic ItemsControl items use their unique model ID
+    [RelayCommand]
+    private void SelectInput(StackInput input)
+    {
+        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var vm = GetInputEditorViewModel(input);
+        Workspace.OpenOrFocusPane($"input:{input.Id}", input.Name, vm);
+        Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            sw.Stop();
+            System.Console.WriteLine($"[InputEditorView]: {sw.ElapsedMilliseconds} ms");
+        }, DispatcherPriority.Render);
     }
 
     public PrtEditorViewModel GetPrtEditorViewModel(StackPrt prt)
