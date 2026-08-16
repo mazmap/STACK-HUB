@@ -1,0 +1,183 @@
+<?xml version="1.0"?>
+<SyntaxDefinition name="Maxima" extensions=".mac;.maxima" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+    <Color name="Comment" foreground="#6A9955" />
+    <Color name="String" foreground="#CE9178" />
+    <Color name="ControlKeyword" foreground="#C586C0" fontWeight="bold" />
+    <Color name="OperatorKeyword" foreground="#569CD6" />
+    <Color name="Constant" foreground="#569CD6" />
+    <Color name="BuiltinFunction" foreground="#DCDCAA" />
+    <Color name="Number" foreground="#B5CEA8" />
+    <Color name="Punctuation" foreground="#D4D4D4" />
+
+    <RuleSet>
+        <!-- Block Comments /* ... */ -->
+        <Span color="Comment" multiline="true">
+            <Begin>/\*</Begin>
+            <End>\*/</End>
+        </Span>
+
+        <!-- Double-quoted Strings -->
+        <Span color="String" multiline="false">
+            <Begin>"</Begin>
+            <End>"</End>
+            <RuleSet>
+                <Span begin="\\" end="." />
+            </RuleSet>
+        </Span>
+
+        <!-- Control Keywords -->
+        <Keywords color="ControlKeyword">
+            <Word>if</Word>
+            <Word>then</Word>
+            <Word>else</Word>
+            <Word>elseif</Word>
+            <Word>for</Word>
+            <Word>from</Word>
+            <Word>From</Word>
+            <Word>to</Word>
+            <Word>step</Word>
+            <Word>Step</Word>
+            <Word>thru</Word>
+            <Word>Thru</Word>
+            <Word>while</Word>
+            <Word>do</Word>
+            <Word>return</Word>
+            <Word>block</Word>
+            <Word>catch</Word>
+            <Word>throw</Word>
+            <Word>go</Word>
+            <Word>in</Word>
+            <Word>next</Word>
+            <Word>Next</Word>
+            <Word>unless</Word>
+        </Keywords>
+
+        <!-- Logical and Operator Keywords -->
+        <Keywords color="OperatorKeyword">
+            <Word>and</Word>
+            <Word>or</Word>
+            <Word>not</Word>
+        </Keywords>
+
+        <!-- Built-in Constants -->
+        <Keywords color="Constant">
+            <Word>true</Word>
+            <Word>false</Word>
+            <Word>%pi</Word>
+            <Word>%e</Word>
+            <Word>%i</Word>
+            <Word>%inf</Word>
+            <Word>%phi</Word>
+            <Word>inf</Word>
+            <Word>minf</Word>
+            <Word>infinity</Word>
+            <Word>und</Word>
+            <Word>ind</Word>
+        </Keywords>
+
+        <!-- Common Built-in Math and Maxima Functions -->
+        <Keywords color="BuiltinFunction">
+            <Word>sin</Word>
+            <Word>cos</Word>
+            <Word>tan</Word>
+            <Word>sec</Word>
+            <Word>csc</Word>
+            <Word>cot</Word>
+            <Word>asin</Word>
+            <Word>acos</Word>
+            <Word>atan</Word>
+            <Word>atan2</Word>
+            <Word>asec</Word>
+            <Word>acsc</Word>
+            <Word>acot</Word>
+            <Word>sinh</Word>
+            <Word>cosh</Word>
+            <Word>tanh</Word>
+            <Word>asinh</Word>
+            <Word>acosh</Word>
+            <Word>atanh</Word>
+            <Word>exp</Word>
+            <Word>log</Word>
+            <Word>ln</Word>
+            <Word>sqrt</Word>
+            <Word>abs</Word>
+            <Word>cabs</Word>
+            <Word>diff</Word>
+            <Word>integrate</Word>
+            <Word>sum</Word>
+            <Word>product</Word>
+            <Word>limit</Word>
+            <Word>solve</Word>
+            <Word>linsolve</Word>
+            <Word>algsys</Word>
+            <Word>ratsimp</Word>
+            <Word>radcan</Word>
+            <Word>factor</Word>
+            <Word>expand</Word>
+            <Word>subst</Word>
+            <Word>psubst</Word>
+            <Word>ev</Word>
+            <Word>kill</Word>
+            <Word>matrix</Word>
+            <Word>determinant</Word>
+            <Word>invert</Word>
+            <Word>transpose</Word>
+            <Word>makelist</Word>
+            <Word>create_list</Word>
+            <Word>append</Word>
+            <Word>cons</Word>
+            <Word>endcons</Word>
+            <Word>first</Word>
+            <Word>second</Word>
+            <Word>third</Word>
+            <Word>fourth</Word>
+            <Word>last</Word>
+            <Word>rest</Word>
+            <Word>length</Word>
+            <Word>reverse</Word>
+            <Word>flatten</Word>
+            <Word>map</Word>
+            <Word>fullmap</Word>
+            <Word>apply</Word>
+            <Word>lambda</Word>
+            <Word>define</Word>
+            <Word>print</Word>
+            <Word>disp</Word>
+            <Word>float</Word>
+            <Word>bfloat</Word>
+            <Word>round</Word>
+            <Word>floor</Word>
+            <Word>ceiling</Word>
+            <Word>random</Word>
+            <Word>rand</Word>
+            <Word>rand_with_step</Word>
+            <Word>rand_with_prohib</Word>
+            <Word>simplification</Word>
+            <Word>trigsimp</Word>
+            <Word>trigexpand</Word>
+            <Word>trigreduce</Word>
+            <Word>trigrat</Word>
+            <Word>declare</Word>
+            <Word>assume</Word>
+            <Word>forget</Word>
+            <Word>is</Word>
+            <Word>equal</Word>
+            <Word>notequal</Word>
+        </Keywords>
+
+        <!-- Function Call Pattern: name(...) -->
+        <Rule color="BuiltinFunction">
+            \b[a-zA-Z_][a-zA-Z0-9_]*\b(?=\s*\()
+        </Rule>
+
+        <!-- Numeric Literals -->
+        <Rule color="Number">
+            \b0[xX][0-9a-fA-F]+\b | \b\d+(\.\d+)?([eE][+-]?\d+)?\b
+        </Rule>
+
+        <!-- Punctuation and Operators -->
+        <Rule color="Punctuation">
+            [?:;,.()\[\]{}]
+        </Rule>
+    </RuleSet>
+</SyntaxDefinition>

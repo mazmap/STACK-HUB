@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Avalonia.Layout;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -9,10 +11,135 @@ using STACK_HUB.Models;
 
 namespace STACK_HUB.ViewModels;
 
+public enum AddDialogTarget
+{
+    Input,
+    Prt
+}
+
 public partial class MainViewModel : ObservableObject
 {
     public StackQuestion ActiveQuestion { get; set; } = new();
     public DockingWorkspaceModel Workspace { get; } = new();
+
+    [ObservableProperty]
+    private bool _isAddDialogOpen;
+
+    [ObservableProperty]
+    private AddDialogTarget _addDialogType;
+
+    [ObservableProperty]
+    private string _addDialogTitle = string.Empty;
+
+    [ObservableProperty]
+    private string _addDialogPrompt = string.Empty;
+
+    [ObservableProperty]
+    private string _addDialogName = string.Empty;
+
+    [ObservableProperty]
+    private string? _addDialogErrorMessage;
+
+    [RelayCommand]
+    public void OpenAddInputDialog()
+    {
+        int index = 1;
+        while (ActiveQuestion.Inputs.Any(i => string.Equals(i.Name, $"ans{index}", StringComparison.OrdinalIgnoreCase)))
+        {
+            index++;
+        }
+
+        AddDialogType = AddDialogTarget.Input;
+        AddDialogTitle = "Add New Input";
+        AddDialogPrompt = "Enter input name:";
+        AddDialogName = $"ans{index}";
+        AddDialogErrorMessage = null;
+        IsAddDialogOpen = true;
+    }
+
+    [RelayCommand]
+    public void OpenAddPrtDialog()
+    {
+        int index = 1;
+        while (ActiveQuestion.Prts.Any(p => string.Equals(p.Name, $"prt{index}", StringComparison.OrdinalIgnoreCase)))
+        {
+            index++;
+        }
+
+        AddDialogType = AddDialogTarget.Prt;
+        AddDialogTitle = "Add New PRT";
+        AddDialogPrompt = "Enter PRT name:";
+        AddDialogName = $"prt{index}";
+        AddDialogErrorMessage = null;
+        IsAddDialogOpen = true;
+    }
+
+    [RelayCommand]
+    public void ConfirmAddDialog()
+    {
+        string name = AddDialogName?.Trim() ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            AddDialogErrorMessage = "Name cannot be empty.";
+            return;
+        }
+
+        if (AddDialogType == AddDialogTarget.Input)
+        {
+            if (ActiveQuestion.Inputs.Any(i => string.Equals(i.Name, name, StringComparison.OrdinalIgnoreCase)))
+            {
+                AddDialogErrorMessage = $"An input named '{name}' already exists.";
+                return;
+            }
+
+            var newInput = new StackInput
+            {
+                Name = name,
+                ModelAnswer = "model_ans"
+            };
+            ActiveQuestion.Inputs.Add(newInput);
+            IsAddDialogOpen = false;
+            AddDialogErrorMessage = null;
+            SelectInput(newInput);
+        }
+        else if (AddDialogType == AddDialogTarget.Prt)
+        {
+            if (ActiveQuestion.Prts.Any(p => string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase)))
+            {
+                AddDialogErrorMessage = $"A PRT named '{name}' already exists.";
+                return;
+            }
+
+            var newPrt = new StackPrt
+            {
+                Name = name
+            };
+            newPrt.Nodes.Add(new StackPrtNode
+            {
+                NodeId = "1",
+                Description = "Antwort korrekt?",
+                AnswerTest = "AlgEquiv",
+                StudentAnswer = "sans1",
+                TeacherAnswer = "tans1",
+                NextNodeTrue = "-1",
+                NextNodeFalse = "-1",
+                TrueFeedback = "<p>Correct!</p>",
+                FalseFeedback = "<p>Incorrect.</p>"
+            });
+            ActiveQuestion.Prts.Add(newPrt);
+            _prtEditorCache[newPrt.Id] = new PrtEditorViewModel(newPrt);
+            IsAddDialogOpen = false;
+            AddDialogErrorMessage = null;
+            SelectPrt(newPrt);
+        }
+    }
+
+    [RelayCommand]
+    public void CancelAddDialog()
+    {
+        IsAddDialogOpen = false;
+        AddDialogErrorMessage = null;
+    }
 
     // Fixed panel with explicit ID string key
     [RelayCommand]

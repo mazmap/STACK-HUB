@@ -26,6 +26,83 @@
       <Setter Property="Background" Value="#1E1F2B"/>
       <Setter Property="Foreground" Value="White"/>
     </Style>
+
+    <Style Selector="Button.sidebar-add-btn">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="#94A3B8"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Width" Value="22"/>
+      <Setter Property="Height" Value="22"/>
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button.sidebar-add-btn:pointerover">
+      <Setter Property="Background" Value="#2A2D3A"/>
+    </Style>
+    <Style Selector="Button.sidebar-add-btn:pressed">
+      <Setter Property="Background" Value="#383D4F"/>
+    </Style>
+    <Style Selector="Button.sidebar-add-btn PathIcon">
+      <Setter Property="Foreground" Value="#94A3B8"/>
+    </Style>
+    <Style Selector="Button.sidebar-add-btn:pointerover PathIcon">
+      <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+
+    <Style Selector="Button.dialog-primary-btn">
+      <Setter Property="Background" Value="#2563EB"/>
+      <Setter Property="Foreground" Value="#FFFFFF"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Padding" Value="16,7"/>
+      <Setter Property="CornerRadius" Value="5"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button.dialog-primary-btn:pointerover">
+      <Setter Property="Background" Value="#3B82F6"/>
+    </Style>
+    <Style Selector="Button.dialog-primary-btn:pressed">
+      <Setter Property="Background" Value="#1D4ED8"/>
+    </Style>
+
+    <Style Selector="Button.dialog-secondary-btn">
+      <Setter Property="Background" Value="#2D3039"/>
+      <Setter Property="Foreground" Value="#D1D5DB"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Padding" Value="14,7"/>
+      <Setter Property="CornerRadius" Value="5"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button.dialog-secondary-btn:pointerover">
+      <Setter Property="Background" Value="#3B3F4B"/>
+      <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
+    <Style Selector="Button.dialog-secondary-btn:pressed">
+      <Setter Property="Background" Value="#25272E"/>
+    </Style>
+
+    <Style Selector="Button.dialog-close-btn">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="Foreground" Value="#9CA3AF"/>
+      <Setter Property="FontSize" Value="13"/>
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Width" Value="24"/>
+      <Setter Property="Height" Value="24"/>
+      <Setter Property="CornerRadius" Value="4"/>
+      <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="VerticalContentAlignment" Value="Center"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Cursor" Value="Hand"/>
+    </Style>
+    <Style Selector="Button.dialog-close-btn:pointerover">
+      <Setter Property="Background" Value="#3B3F4B"/>
+      <Setter Property="Foreground" Value="#FFFFFF"/>
+    </Style>
   </Window.Styles>
 
   <Grid RowDefinitions="Auto, *">
@@ -60,8 +137,16 @@
               </StackPanel>
 
               <!-- Category 3: Input Settings list -->
-              <StackPanel>
-                <TextBlock Text="Input settings"/>
+              <StackPanel Spacing="4">
+                <Grid ColumnDefinitions="*, Auto">
+                  <TextBlock Grid.Column="0" Text="Input settings" VerticalAlignment="Center"/>
+                  <Button Grid.Column="1" 
+                          Classes="sidebar-add-btn" 
+                          Command="{Binding OpenAddInputDialogCommand}" 
+                          ToolTip.Tip="Add new input">
+                    <PathIcon Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" Width="12" Height="12"/>
+                  </Button>
+                </Grid>
                 <ItemsControl ItemsSource="{Binding ActiveQuestion.Inputs}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="models:StackInput">
@@ -82,8 +167,16 @@
               </StackPanel>
 
               <!-- Category 5: Grading list -->
-              <StackPanel>
-                <TextBlock Text="Grading (PRTs)" Classes="sidebar-header"/>
+              <StackPanel Spacing="4">
+                <Grid ColumnDefinitions="*, Auto">
+                  <TextBlock Grid.Column="0" Text="Grading (PRTs)" Classes="sidebar-header" VerticalAlignment="Center"/>
+                  <Button Grid.Column="1" 
+                          Classes="sidebar-add-btn" 
+                          Command="{Binding OpenAddPrtDialogCommand}" 
+                          ToolTip.Tip="Add new PRT">
+                    <PathIcon Data="M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z" Width="12" Height="12"/>
+                  </Button>
+                </Grid>
                 <ItemsControl ItemsSource="{Binding ActiveQuestion.Prts}">
                   <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="models:StackPrt">
@@ -103,6 +196,80 @@
           <!-- Workspace Area: Your Encapsulated Tiling Control -->
           <views:DockingWorkspace Grid.Column="2" DataContext="{Binding Workspace}"/>
         </Grid>
+        
+        <!-- Modal Dialog Overlay for Adding Input / PRT -->
+        <Grid Grid.Row="0" Grid.RowSpan="2"
+              Background="#75000000"
+              IsVisible="{Binding IsAddDialogOpen}"
+              PointerPressed="OnDialogBackdropPointerPressed">
+            <Border Background="#1E2028"
+                    BorderBrush="#3B3F4F"
+                    BorderThickness="1"
+                    CornerRadius="8"
+                    BoxShadow="0 16 48 0 #70000000"
+                    Padding="22"
+                    Width="380"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    PointerPressed="OnDialogCardPointerPressed">
+                <StackPanel Spacing="16">
+                    <!-- Title Bar -->
+                    <Grid ColumnDefinitions="*, Auto">
+                        <TextBlock Grid.Column="0" 
+                                   Text="{Binding AddDialogTitle}" 
+                                   FontSize="15" 
+                                   FontWeight="SemiBold" 
+                                   Foreground="#FFFFFF" 
+                                   VerticalAlignment="Center"/>
+                        <Button Grid.Column="1" 
+                                Content="✕" 
+                                Command="{Binding CancelAddDialogCommand}"
+                                Classes="dialog-close-btn"
+                                ToolTip.Tip="Close"/>
+                    </Grid>
+
+                    <!-- Input Section -->
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="{Binding AddDialogPrompt}" 
+                                   FontSize="12" 
+                                   Foreground="#94A3B8"/>
+                        <TextBox x:Name="AddDialogNameTextBox"
+                                 Text="{Binding AddDialogName, Mode=TwoWay}"
+                                 PlaceholderText="Enter name..."
+                                 Background="#131418"
+                                 Foreground="#FFFFFF"
+                                 BorderBrush="#3D4252"
+                                 BorderThickness="1"
+                                 CornerRadius="5"
+                                 Padding="10,8"
+                                 FontSize="13">
+                            <TextBox.KeyBindings>
+                                <KeyBinding Gesture="Enter" Command="{Binding ConfirmAddDialogCommand}"/>
+                                <KeyBinding Gesture="Escape" Command="{Binding CancelAddDialogCommand}"/>
+                            </TextBox.KeyBindings>
+                        </TextBox>
+                        <TextBlock Text="{Binding AddDialogErrorMessage}"
+                                   Foreground="#EF4444"
+                                   FontSize="11"
+                                   IsVisible="{Binding AddDialogErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+
+                    <!-- Action Buttons -->
+                    <StackPanel Orientation="Horizontal" 
+                                HorizontalAlignment="Right" 
+                                Spacing="8">
+                        <Button Content="Cancel" 
+                                Command="{Binding CancelAddDialogCommand}"
+                                Classes="dialog-secondary-btn"/>
+                        <Button Content="Add" 
+                                Command="{Binding ConfirmAddDialogCommand}"
+                                Classes="dialog-primary-btn"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+
         <Canvas Width="0" Height="0" IsHitTestVisible="False">
           <views:CasTextEditor x:Name="PrewarmCasTextEditor" Width="800" Height="600" Canvas.Left="-9999" Canvas.Top="-9999" />
           <views:MaximaEditor x:Name="PrewarmMaximaEditor" Width="800" Height="600" Canvas.Left="-9999" Canvas.Top="-9999" />

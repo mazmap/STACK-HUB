@@ -1,0 +1,203 @@
+<?xml version="1.0"?>
+<SyntaxDefinition name="CASText" extensions=".html;.htm;.cas" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+    <Color name="Comment" foreground="#6A9955" />
+    <Color name="DocType" foreground="#569CD6" />
+    <Color name="XmlDeclaration" foreground="#569CD6" />
+    <Color name="XmlTag" foreground="#808080" />
+    <Color name="HtmlTag" foreground="#569CD6" fontWeight="normal" />
+    <Color name="AttributeName" foreground="#9CDCFE" />
+    <Color name="AttributeValue" foreground="#CE9178" />
+    <Color name="Entity" foreground="#569CD6" />
+    <Color name="StackTag" foreground="#C586C0" fontWeight="bold" />
+    <Color name="StackCas" foreground="#4EC9B0" fontWeight="bold" />
+    <Color name="LatexMath" foreground="#DCDCAA" />
+
+    <RuleSet>
+        <!-- STACK inline CAS: {@ ... @} -->
+        <Span color="StackCas" multiline="false">
+            <Begin>\{@</Begin>
+            <End>@\}</End>
+        </Span>
+
+        <!-- LaTeX Inline Math: \( ... \) or \[ ... \] or $$ ... $$ -->
+        <Span color="LatexMath" multiline="false">
+            <Begin>\\\(</Begin>
+            <End>\\\)</End>
+        </Span>
+        <Span color="LatexMath" multiline="true">
+            <Begin>\\\[</Begin>
+            <End>\\\]</End>
+        </Span>
+        <Span color="LatexMath" multiline="true">
+            <Begin>\$\$</Begin>
+            <End>\$\$</End>
+        </Span>
+
+        <!-- STACK Special Tags: [[input:...]], [[validation:...]], [[feedback:...]] -->
+        <Span color="StackTag" multiline="false">
+            <Begin>\[\[</Begin>
+            <End>\]\]</End>
+        </Span>
+
+        <!-- HTML / XML Comments -->
+        <Span color="Comment" multiline="true">
+            <Begin>&lt;!--</Begin>
+            <End>--&gt;</End>
+        </Span>
+
+        <!-- CDATA -->
+        <Span color="Comment" multiline="true">
+            <Begin>&lt;!\[CDATA\[</Begin>
+            <End>\]\]&gt;</End>
+        </Span>
+
+        <!-- DOCTYPE -->
+        <Span color="DocType" multiline="true">
+            <Begin>&lt;!DOCTYPE</Begin>
+            <End>&gt;</End>
+        </Span>
+
+        <!-- XML Declaration -->
+        <Span color="XmlDeclaration" multiline="false">
+            <Begin>&lt;\?</Begin>
+            <End>\?&gt;</End>
+        </Span>
+
+        <!-- Style Tag with CSS -->
+        <Span multiline="true">
+            <Begin color="HtmlTag">&lt;style.*?&gt;</Begin>
+            <End color="HtmlTag">&lt;/style&gt;</End>
+            <RuleSet>
+                <Span color="Comment" multiline="true">
+                    <Begin>/\*</Begin>
+                    <End>\*/</End>
+                </Span>
+                <Span color="AttributeValue" multiline="false">
+                    <Begin>"</Begin>
+                    <End>"</End>
+                </Span>
+                <Span color="AttributeValue" multiline="false">
+                    <Begin>'</Begin>
+                    <End>'</End>
+                </Span>
+                <Keywords color="AttributeName">
+                    <Word>color</Word>
+                    <Word>background</Word>
+                    <Word>margin</Word>
+                    <Word>padding</Word>
+                    <Word>font-size</Word>
+                    <Word>font-family</Word>
+                    <Word>display</Word>
+                    <Word>border</Word>
+                    <Word>width</Word>
+                    <Word>height</Word>
+                    <Word>border-radius</Word>
+                </Keywords>
+            </RuleSet>
+        </Span>
+
+        <!-- HTML Closing Tags: </tag> -->
+        <Span multiline="false">
+            <Begin color="XmlTag">&lt;/</Begin>
+            <End color="XmlTag">&gt;</End>
+            <RuleSet>
+                <Rule color="HtmlTag">
+                    [a-zA-Z0-9_\-]+
+                </Rule>
+            </RuleSet>
+        </Span>
+
+        <!-- HTML Opening / Self-closing Tags: <tag ...> -->
+        <Span multiline="true">
+            <Begin color="XmlTag">&lt;</Begin>
+            <End color="XmlTag">&gt;</End>
+            <RuleSet>
+                <!-- Slash for self-closing tags -->
+                <Rule color="XmlTag">
+                    /
+                </Rule>
+                <!-- Double-quoted string attribute -->
+                <Span color="AttributeValue" multiline="false">
+                    <Begin>"</Begin>
+                    <End>"</End>
+                </Span>
+                <!-- Single-quoted string attribute -->
+                <Span color="AttributeValue" multiline="false">
+                    <Begin>'</Begin>
+                    <End>'</End>
+                </Span>
+                <!-- Attribute Name -->
+                <Rule color="AttributeName">
+                    [a-zA-Z0-9_\-]+(?=\s*=\s*)
+                </Rule>
+                <!-- HTML Tag Names (matched as keywords or leading word) -->
+                <Keywords color="HtmlTag">
+                    <Word>div</Word>
+                    <Word>span</Word>
+                    <Word>p</Word>
+                    <Word>a</Word>
+                    <Word>b</Word>
+                    <Word>i</Word>
+                    <Word>u</Word>
+                    <Word>s</Word>
+                    <Word>em</Word>
+                    <Word>strong</Word>
+                    <Word>h1</Word>
+                    <Word>h2</Word>
+                    <Word>h3</Word>
+                    <Word>h4</Word>
+                    <Word>h5</Word>
+                    <Word>h6</Word>
+                    <Word>ul</Word>
+                    <Word>ol</Word>
+                    <Word>li</Word>
+                    <Word>table</Word>
+                    <Word>tr</Word>
+                    <Word>td</Word>
+                    <Word>th</Word>
+                    <Word>tbody</Word>
+                    <Word>thead</Word>
+                    <Word>br</Word>
+                    <Word>hr</Word>
+                    <Word>img</Word>
+                    <Word>input</Word>
+                    <Word>button</Word>
+                    <Word>form</Word>
+                    <Word>label</Word>
+                    <Word>select</Word>
+                    <Word>option</Word>
+                    <Word>textarea</Word>
+                    <Word>code</Word>
+                    <Word>pre</Word>
+                    <Word>blockquote</Word>
+                    <Word>iframe</Word>
+                    <Word>header</Word>
+                    <Word>footer</Word>
+                    <Word>nav</Word>
+                    <Word>section</Word>
+                    <Word>article</Word>
+                    <Word>main</Word>
+                    <Word>aside</Word>
+                    <Word>details</Word>
+                    <Word>summary</Word>
+                    <Word>style</Word>
+                    <Word>script</Word>
+                    <Word>meta</Word>
+                    <Word>link</Word>
+                    <Word>head</Word>
+                    <Word>body</Word>
+                    <Word>html</Word>
+                </Keywords>
+                <Rule color="HtmlTag">
+                    ^[a-zA-Z0-9_\-]+
+                </Rule>
+            </RuleSet>
+        </Span>
+
+        <!-- HTML Entities -->
+        <Span color="Entity">
+            <Begin>&amp;</Begin>
+            <End>;</End>
+        </Span>
+    </RuleSet>
+</SyntaxDefinition>

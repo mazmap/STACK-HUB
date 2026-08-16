@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace STACK_HUB.Models;
@@ -24,50 +25,55 @@ public class StackQuestion
         
         var defaultPrt = new StackPrt { Name = "prt1" };
         
-        // Node 1: Root Equivalence Test
+        // Seed 7 Connected Nodes spanning 4 tiers to demonstrate DAG auto-layout & multi-branch evaluation
+        // Node 1: Primary Algebraic Equivalence Check
         defaultPrt.Nodes.Add(new StackPrtNode
         {
-            Name = "Node 1",
+            NodeId = "1",
+            Description = "Antwort korrekt?",
             AnswerTest = "AlgEquiv",
-            StudentAnswer = "ans1",
-            TeacherAnswer = "model_ans",
+            StudentAnswer = "sans1",
+            TeacherAnswer = "tans1",
             ScoreModeTrue = "Set to",
-            ScoreTrue = 1.0,
-            NextNodeTrue = "Node 3",
+            ScoreTrue = 0.5,
+            NextNodeTrue = "3",
             ScoreModeFalse = "Set to",
             ScoreFalse = 0.0,
-            NextNodeFalse = "Node 2",
+            NextNodeFalse = "2",
             TrueFeedback = "<p>Correct! Answer is algebraically equivalent. Checking simplification...</p>",
             FalseFeedback = "<p>Incorrect. Checking for common sign error...</p>"
         });
 
-        // Node 2: Sign Error Check
+        // Node 2: Sign Error Check (with Quiet / dashed border as in mockup)
         defaultPrt.Nodes.Add(new StackPrtNode
         {
-            Name = "Node 2",
+            NodeId = "2",
+            Description = "Antwort korrekt?",
             AnswerTest = "AlgEquiv",
-            StudentAnswer = "ans1",
-            TeacherAnswer = "-model_ans",
+            StudentAnswer = "sans1",
+            TeacherAnswer = "tans1",
             ScoreModeTrue = "Set to",
             ScoreTrue = 0.5,
             NextNodeTrue = "-1",
             ScoreModeFalse = "Set to",
             ScoreFalse = 0.0,
-            NextNodeFalse = "Node 4",
+            NextNodeFalse = "4",
+            Quiet = true,
             TrueFeedback = "<p>Sign error detected. Partial credit awarded.</p>",
             FalseFeedback = "<p>Checking for differentiation instead of integration...</p>"
         });
 
-        // Node 3: Lowest Terms / Form Check
+        // Node 3: Lowest Terms Check (Empty Description to showcase mockup no-description compact format!)
         defaultPrt.Nodes.Add(new StackPrtNode
         {
-            Name = "Node 3",
-            AnswerTest = "LowestTerms",
-            StudentAnswer = "ans1",
-            TeacherAnswer = "model_ans",
+            NodeId = "3",
+            Description = "",
+            AnswerTest = "AlgEquiv",
+            StudentAnswer = "sans1",
+            TeacherAnswer = "tans1",
             ScoreModeTrue = "Set to",
             ScoreTrue = 1.0,
-            NextNodeTrue = "Node 5",
+            NextNodeTrue = "5",
             ScoreModeFalse = "Set to",
             ScoreFalse = 0.8,
             NextNodeFalse = "-1",
@@ -78,16 +84,17 @@ public class StackQuestion
         // Node 4: Derivative Misconception Check
         defaultPrt.Nodes.Add(new StackPrtNode
         {
-            Name = "Node 4",
+            NodeId = "4",
+            Description = "Ableitung statt Integral",
             AnswerTest = "AlgEquiv",
             StudentAnswer = "ans1",
             TeacherAnswer = "diff(model_ans, x)",
             ScoreModeTrue = "Set to",
             ScoreTrue = 0.2,
-            NextNodeTrue = "Node 6",
+            NextNodeTrue = "6",
             ScoreModeFalse = "Set to",
             ScoreFalse = 0.0,
-            NextNodeFalse = "Node 7",
+            NextNodeFalse = "7",
             TrueFeedback = "<p>It appears you differentiated instead of integrating.</p>",
             FalseFeedback = "<p>Checking fallback structure...</p>"
         });
@@ -95,7 +102,8 @@ public class StackQuestion
         // Node 5: Factored Form Check
         defaultPrt.Nodes.Add(new StackPrtNode
         {
-            Name = "Node 5",
+            NodeId = "5",
+            Description = "Faktorisierte Form",
             AnswerTest = "FacForm",
             StudentAnswer = "ans1",
             TeacherAnswer = "model_ans",
@@ -112,7 +120,8 @@ public class StackQuestion
         // Node 6: Missing Constant Check
         defaultPrt.Nodes.Add(new StackPrtNode
         {
-            Name = "Node 6",
+            NodeId = "6",
+            Description = "Integrationskonstante",
             AnswerTest = "AlgEquiv",
             StudentAnswer = "ans1",
             TeacherAnswer = "model_ans + c",
@@ -129,7 +138,8 @@ public class StackQuestion
         // Node 7: Expanded Form Fallback
         defaultPrt.Nodes.Add(new StackPrtNode
         {
-            Name = "Node 7",
+            NodeId = "7",
+            Description = "Ausmultiplizierte Form",
             AnswerTest = "Expanded",
             StudentAnswer = "ans1",
             TeacherAnswer = "model_ans",
@@ -163,29 +173,118 @@ public class StackInput
 public partial class StackPrt : ObservableObject
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
-
+    
     [ObservableProperty]
     private string _name = "prt1";
-
+    
     [ObservableProperty]
     private double _value = 1.0;
-
-    [ObservableProperty]
-    private string _feedbackStyle = "Standard"; // Standard, Compact, None
-
-    [ObservableProperty]
-    private string _feedbackVariables = "/*\nans1 = list of the CAS values assigned to the selected options\nmcq_correct(tans) = list of the CAS values assigned to the correct (true) options\nmcq_incorrect(tans) = list of the CAS values assigned to the incorrect (false) options\n*/\n\nnumOptions: length(tans);\n\ncorrectOptionValues: mcq_correct(tans);\nincorrectOptionValues: mcq_incorrect(tans);"; 
     
-    public ObservableCollection<StackPrtNode> Nodes { get; set; } = new();
+    [ObservableProperty]
+    private bool _autoCap;
+
+    [ObservableProperty]
+    private bool _autosimplify = true;
+    
+    [ObservableProperty]
+    private string _feedbackStyle = "Formativ"; // "Formativ", "Standard", "Kompakt", "Only Symbol"
+    
+    [ObservableProperty]
+    private string _feedbackVariables = "/* Feedback-Variablen hier definieren */";
+    
+    public ObservableCollection<StackPrtNode> Nodes { get; } = new();
+
+    public StackPrt()
+    {
+        Nodes.CollectionChanged += (s, e) =>
+        {
+            if (e.NewItems != null)
+            {
+                foreach (StackPrtNode node in e.NewItems)
+                {
+                    node.ParentPrt = this;
+                }
+            }
+        };
+    }
 }
 
 public partial class StackPrtNode : ObservableObject
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
 
+    public StackPrt? ParentPrt { get; set; }
+
+    private string _nodeId = "1";
+
+    public string NodeId
+    {
+        get => _nodeId;
+        set
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                OnPropertyChanged(nameof(NodeId));
+                return;
+            }
+
+            string trimmed = value.Trim();
+            if (!int.TryParse(trimmed, out int parsedNum) || parsedNum < 1)
+            {
+                OnPropertyChanged(nameof(NodeId));
+                return;
+            }
+
+            string canonical = parsedNum.ToString();
+            if (_nodeId == canonical) return;
+
+            // Enforce uniqueness: Prohibit duplicate NodeId among existing nodes
+            if (ParentPrt != null && ParentPrt.Nodes.Any(n => n.Id != this.Id && n.NodeId == canonical))
+            {
+                // Duplicate detected! Revert UI binding to previous valid NodeId
+                OnPropertyChanged(nameof(NodeId));
+                return;
+            }
+
+            string oldNodeId = _nodeId;
+            _nodeId = canonical;
+            OnPropertyChanged(nameof(NodeId));
+            OnPropertyChanged(nameof(Name));
+            OnPropertyChanged(nameof(DisplayName));
+            OnPropertyChanged(nameof(DisplayNextNodeTrue));
+            OnPropertyChanged(nameof(DisplayNextNodeFalse));
+
+            // Seamlessly migrate branch references across PRT from oldNodeId to new canonical NodeId
+            if (ParentPrt != null)
+            {
+                foreach (var node in ParentPrt.Nodes)
+                {
+                    if (node.NextNodeTrue == oldNodeId)
+                    {
+                        node.NextNodeTrue = canonical;
+                    }
+                    if (node.NextNodeFalse == oldNodeId)
+                    {
+                        node.NextNodeFalse = canonical;
+                    }
+                }
+            }
+        }
+    }
+
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(MaximaCheck))]
-    private string _name = "Antwort korrekt?";
+    [NotifyPropertyChangedFor(nameof(HasDescription))]
+    private string _description = "Antwort korrekt?";
+
+    public bool HasDescription => !string.IsNullOrWhiteSpace(Description);
+
+    public string DisplayName => $"Node {NodeId}";
+
+    public string Name
+    {
+        get => NodeId;
+        set => NodeId = value;
+    }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(MaximaCheck))]
@@ -239,7 +338,7 @@ public partial class StackPrtNode : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayNextNodeTrue))]
-    private string _nextNodeTrue = "-1"; // "-1" for Stop, otherwise Node number
+    private string _nextNodeTrue = "-1"; // "-1" for Stop, otherwise Node ID/number
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DisplayNextNodeFalse))]
@@ -247,11 +346,29 @@ public partial class StackPrtNode : ObservableObject
 
     public string DisplayNextNodeTrue
     {
-        get => string.IsNullOrEmpty(NextNodeTrue) || NextNodeTrue == "-1" ? "Keine" : NextNodeTrue;
+        get
+        {
+            if (string.IsNullOrEmpty(NextNodeTrue) || NextNodeTrue == "-1") return "Keine";
+            if (NextNodeTrue.StartsWith("Node ", StringComparison.OrdinalIgnoreCase)) return NextNodeTrue;
+            return $"Node {NextNodeTrue}";
+        }
         set
         {
-            if (value == null) return; // Prevent ComboBox unload/detachment from wiping the connection!
-            var val = value == "Keine" ? "-1" : value;
+            if (value == null) return;
+            string val;
+            if (value == "Keine" || value == "-1")
+            {
+                val = "-1";
+            }
+            else if (value.StartsWith("Node ", StringComparison.OrdinalIgnoreCase))
+            {
+                val = value.Substring(5).Trim();
+            }
+            else
+            {
+                val = value;
+            }
+
             if (NextNodeTrue != val)
             {
                 NextNodeTrue = val;
@@ -261,11 +378,29 @@ public partial class StackPrtNode : ObservableObject
 
     public string DisplayNextNodeFalse
     {
-        get => string.IsNullOrEmpty(NextNodeFalse) || NextNodeFalse == "-1" ? "Keine" : NextNodeFalse;
+        get
+        {
+            if (string.IsNullOrEmpty(NextNodeFalse) || NextNodeFalse == "-1") return "Keine";
+            if (NextNodeFalse.StartsWith("Node ", StringComparison.OrdinalIgnoreCase)) return NextNodeFalse;
+            return $"Node {NextNodeFalse}";
+        }
         set
         {
-            if (value == null) return; // Prevent ComboBox unload/detachment from wiping the connection!
-            var val = value == "Keine" ? "-1" : value;
+            if (value == null) return;
+            string val;
+            if (value == "Keine" || value == "-1")
+            {
+                val = "-1";
+            }
+            else if (value.StartsWith("Node ", StringComparison.OrdinalIgnoreCase))
+            {
+                val = value.Substring(5).Trim();
+            }
+            else
+            {
+                val = value;
+            }
+
             if (NextNodeFalse != val)
             {
                 NextNodeFalse = val;

@@ -1,15 +1,17 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:STACK_HUB.ViewModels"
              xmlns:avaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
-             x:Class="STACK_HUB.Views.CasTextEditor">
+             x:Class="STACK_HUB.Views.CasTextEditor"
+             x:DataType="vm:CasTextEditorViewModel">
     
-    <Grid>
+    <Grid ClipToBounds="True">
         <avaloniaEdit:TextEditor x:Name="Editor"
                                  FontFamily="Iosevka, Cascadia Code, Consolas, monospace"
-                                 FontSize="14"
-                                 ShowLineNumbers="True"
-                                 WordWrap="True"
-                                 HorizontalScrollBarVisibility="Auto"
+                                 FontSize="{Binding FontSize}"
+                                 ShowLineNumbers="{Binding ShowLineNumbers}"
+                                 WordWrap="{Binding WordWrap}"
+                                 HorizontalScrollBarVisibility="Disabled"
                                  VerticalScrollBarVisibility="Auto" />
     </Grid>
 </UserControl>
