@@ -1,11 +1,9 @@
 using System;
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
-using AvaloniaEdit.TextMate;
+using Avalonia.Media;
+using AvaloniaEdit.Highlighting;
 using STACK_HUB.Services;
 using STACK_HUB.ViewModels;
-using TextMateSharp.Grammars;
 
 namespace STACK_HUB.Views;
 
@@ -14,17 +12,34 @@ public partial class MaximaEditor : UserControl
     public MaximaEditor()
     {
         InitializeComponent();
-        var textMateInstallation = Editor.InstallTextMate(TextMateService.Instance);
-        textMateInstallation.SetGrammar(TextMateService.Instance.GetScopeByLanguageId("maxima"));
+        Editor.SyntaxHighlighting = SyntaxHighlightingService.MaximaDefinition;
+        Editor.TextArea.SelectionBrush = new SolidColorBrush(Color.Parse("#264F78"));
+        Editor.TextArea.SelectionForeground = null;
+        Editor.TextArea.SelectionBorder = null;
+        
+        Editor.TextChanged += (s, e) =>
+        {
+            if (DataContext is MaximaEditorViewModel vm && vm.Text != Editor.Text)
+            {
+                vm.Text = Editor.Text;
+            }
+        };
     }
     
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
 
-        if (DataContext is MaximaEditorViewModel vm && Editor.Text != vm.Text)
+        if (DataContext is MaximaEditorViewModel vm)
         {
-            Editor.Text = vm.Text ?? string.Empty;
+            if (Editor.Text != vm.Text)
+            {
+                Editor.Text = vm.Text ?? string.Empty;
+            }
+            Editor.WordWrap = vm.WordWrap;
+            Editor.ShowLineNumbers = vm.ShowLineNumbers;
+            Editor.FontSize = vm.FontSize;
+            Editor.HorizontalScrollBarVisibility = vm.WordWrap ? Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled : Avalonia.Controls.Primitives.ScrollBarVisibility.Auto;
         }
     }
 }

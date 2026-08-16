@@ -149,10 +149,18 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
         SelectedNode = null;
     }
 
+    [ObservableProperty]
+    private CasTextEditorViewModel? _trueFeedbackEditor;
+
+    [ObservableProperty]
+    private CasTextEditorViewModel? _falseFeedbackEditor;
+
     partial void OnSelectedNodeChanged(StackPrtNode? value)
     {
         if (value == null)
         {
+            TrueFeedbackEditor = null;
+            FalseFeedbackEditor = null;
             foreach (var node in GraphNodes)
             {
                 node.IsSelected = false;
@@ -171,6 +179,26 @@ public partial class PrtEditorViewModel : ViewModelBase, ICacheablePane
                     SelectedGraphNodes.Add(node);
                 }
             }
+
+            var trueEd = new CasTextEditorViewModel(value.TrueFeedback, wordWrap: true);
+            trueEd.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(CasTextEditorViewModel.Text))
+                {
+                    value.TrueFeedback = trueEd.Text;
+                }
+            };
+            TrueFeedbackEditor = trueEd;
+
+            var falseEd = new CasTextEditorViewModel(value.FalseFeedback, wordWrap: true);
+            falseEd.PropertyChanged += (s, e) =>
+            {
+                if (e.PropertyName == nameof(CasTextEditorViewModel.Text))
+                {
+                    value.FalseFeedback = falseEd.Text;
+                }
+            };
+            FalseFeedbackEditor = falseEd;
         }
     }
 
